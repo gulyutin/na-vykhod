@@ -3,14 +3,23 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#153e35">
+    <meta name="theme-color" content="#ffffff">
     <meta name="description" content="Подберите одежду для пробежки или похода на Караульную гору по погоде и вещам из своего гардероба.">
     <title>На выход — как одеться сегодня</title>
-    <link rel="stylesheet" href="styles.css">
-    <script type="module" src="./app.js"></script>
+    <link rel="stylesheet" href="styles.css?v=4">
+    <script type="module" src="./app.js?v=4"></script>
   </head>
   <body>
     <a class="skip-link" href="#planner">Перейти к подбору одежды</a>
+    <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+      <symbol id="wx-sun" viewBox="0 0 48 48"><circle cx="24" cy="24" r="8"/><path d="M24 5v6m0 26v6M5 24h6m26 0h6M10.5 10.5l4.2 4.2m18.6 18.6 4.2 4.2m0-27-4.2 4.2m-18.6 18.6-4.2 4.2"/></symbol>
+      <symbol id="wx-cloud" viewBox="0 0 48 48"><path d="M11 36h25a8 8 0 0 0 0-16h-2a11 11 0 0 0-21-2 9 9 0 0 0-2 18Z"/></symbol>
+      <symbol id="wx-partly" viewBox="0 0 48 48"><circle cx="18" cy="16" r="7"/><path d="M18 3v4M5 16h4m1-10 3 3M36 36H13a8 8 0 0 1-1-16 11 11 0 0 1 20-1h4a8.5 8.5 0 0 1 0 17Z"/></symbol>
+      <symbol id="wx-rain" viewBox="0 0 48 48"><path d="M11 30h25a8 8 0 0 0 0-16h-2a11 11 0 0 0-21-2 9 9 0 0 0-2 18Zm5 6-2 5m12-5-2 5m12-5-2 5"/></symbol>
+      <symbol id="wx-snow" viewBox="0 0 48 48"><path d="M11 29h25a8 8 0 0 0 0-16h-2a11 11 0 0 0-21-2 9 9 0 0 0-2 18Zm5 6v8m-4-4h8m4-4v8m-4-4h8m4-4v8m-4-4h8"/></symbol>
+      <symbol id="wx-fog" viewBox="0 0 48 48"><path d="M11 27h25a8 8 0 0 0 0-16h-2a11 11 0 0 0-21-2 9 9 0 0 0-2 18ZM7 34h34M12 41h24"/></symbol>
+      <symbol id="wx-storm" viewBox="0 0 48 48"><path d="M11 29h25a8 8 0 0 0 0-16h-2a11 11 0 0 0-21-2 9 9 0 0 0-2 18Zm15 3-6 8h6l-2 6 10-11h-7l3-3"/></symbol>
+    </svg>
 
     <header class="site-header">
       <div class="shell header-inner">
@@ -36,30 +45,16 @@
       <section class="hero" aria-labelledby="pageTitle">
         <div class="shell hero-grid">
           <div class="hero-copy">
-            <div class="eyebrow"><span class="eyebrow-line"></span> МАРШРУТ НАЧИНАЕТСЯ ДОМА</div>
-            <h1 id="pageTitle">На улице своя погода.<br><em>У тебя — свой комплект.</em></h1>
-            <p>Выбери пробежку или подъём на Караульную гору. Мы сверим прогноз с твоими вещами и подскажем, что надеть и взять с собой.</p>
+            <div class="eyebrow"><span class="eyebrow-line"></span> СОБИРАЙСЯ В ДВИЖЕНИЕ</div>
+            <h1 id="pageTitle">На выход.<br><em>По погоде.</em></h1>
+            <p>Для пробежки или подъёма на Караульную гору. Прогноз, твои вещи и понятный комплект — в одном месте.</p>
             <p class="route-note"><span aria-hidden="true">⌁</span> От ГАИ на Брянской до часовни · около 2,9 км туда-обратно по вашему треку</p>
             <a class="hero-link" href="#planner">Собрать комплект <span aria-hidden="true">↗</span></a>
           </div>
           <div class="hero-art" aria-hidden="true">
             <div class="hero-art-label">КАРАУЛЬНАЯ ГОРА<br><span>Красноярск · 56.02° N</span></div>
-            <svg viewBox="0 0 540 332" preserveAspectRatio="xMidYMid slice" role="presentation">
-              <defs>
-                <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d9e4d6"/><stop offset="1" stop-color="#a8c1ac"/></linearGradient>
-                <linearGradient id="back" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#789d82"/><stop offset="1" stop-color="#4c785f"/></linearGradient>
-              </defs>
-              <rect width="540" height="332" fill="url(#sky)"/>
-              <circle cx="388" cy="86" r="46" fill="#e9c56f"/>
-              <path d="M0 220 70 179l58 35 96-94 64 59 86-104 70 93 96-57v221H0Z" fill="url(#back)"/>
-              <path d="m0 251 89-41 72 20 126-93 75 72 75-45 103 59v109H0Z" fill="#315d4b"/>
-              <path d="m0 306 83-42 73 23 114-85 86 65 76-31 108 45v51H0Z" fill="#173f36"/>
-              <path d="M239 332c17-28 28-55 41-72 10-13 32-25 49-29" stroke="#dfb97d" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 10"/>
-              <path d="M347 157v74m-12 0h24m-21-50h18" stroke="#f1e6cb" stroke-width="3" stroke-linecap="round"/>
-              <path d="M337 157h21l-10.5-19Z" fill="#f1e6cb"/>
-              <g stroke="#cee0cc" stroke-width="1" opacity=".35"><path d="M8 216c47-5 64-21 97-32"/><path d="M36 255c61-13 111-39 143-63"/><path d="M391 185c33-8 57-21 91-44"/><path d="M376 264c40-1 99-23 155-42"/></g>
-            </svg>
-            <div class="art-coordinate">56.02368° N &nbsp; 92.85957° E</div>
+            <div class="hero-art-accent"></div>
+            <div class="art-coordinate">ИЛЛЮСТРАЦИЯ МАРШРУТА · КРАСНОЯРСК</div>
           </div>
         </div>
       </section>
@@ -107,7 +102,7 @@
                 <button type="submit">Найти</button>
               </form>
               <div id="placeSuggestions" class="place-suggestions" aria-live="polite"></div>
-              <p class="tiny-note">При выборе геолокации координаты отправляются в Open-Meteo для прогноза. Гардероб остаётся в браузере.</p>
+              <p class="tiny-note">При выборе геолокации координаты отправляются в Open-Meteo для прогноза. Изменения гардероба остаются в браузере.</p>
             </div>
 
             <div class="field-group timing-field">
@@ -137,6 +132,16 @@
                   </select>
                 </div>
               </div>
+              <div class="select-field surface-field">
+                <label for="surfaceSelect">Какое покрытие на маршруте сейчас?</label>
+                <select id="surfaceSelect" name="surface">
+                  <option value="dry">Сухая лестница и асфальт</option>
+                  <option value="trail">Грунт / мокро</option>
+                  <option value="snow">Снег на асфальте</option>
+                  <option value="ice">Лёд / гололёд</option>
+                </select>
+                <p class="tiny-note">Выбери фактическое покрытие: прогноз не отличит снег на асфальте от гололёда.</p>
+              </div>
               <button id="refreshWeather" class="button-primary" type="button"><span aria-hidden="true">↻</span> Обновить прогноз</button>
             </div>
           </section>
@@ -148,7 +153,7 @@
                   <span id="weatherScope" class="result-kicker">ПРОГНОЗ ПО МАРШРУТУ</span>
                   <h2 id="weatherTitle">Погода на выход</h2>
                 </div>
-                <span class="weather-symbol" aria-hidden="true">✳</span>
+                <span class="weather-symbol" aria-hidden="true"><svg id="weatherIcon" viewBox="0 0 48 48"><use id="weatherIconUse" href="#wx-partly"></use></svg></span>
               </div>
               <p id="weatherStatus" class="weather-status" role="status" aria-live="polite">Загружаем прогноз для Караульной горы…</p>
               <div id="weatherPanel" hidden>
@@ -191,8 +196,8 @@
       <section class="wardrobe-section" id="wardrobe" aria-labelledby="wardrobeTitle">
         <div class="shell">
           <div class="section-heading wardrobe-heading">
-            <div><div class="section-kicker">02 / СОБИРАЕМ ГАРДЕРОБ</div><h2 id="wardrobeTitle">Твои вещи <span id="wardrobeCount" class="count-badge">0</span></h2></div>
-            <p>Добавь то, что реально носишь. Совет станет полезнее с каждым предметом.</p>
+            <div><div class="section-kicker">02 / СОБИРАЕМ ГАРДЕРОБ</div><h2 id="wardrobeTitle">Гардероб <span id="wardrobeCount" class="count-badge">0</span></h2></div>
+            <p>Твои вещи и их иллюстрации. Цвет и детали могут отличаться от твоих экземпляров.</p>
           </div>
 
           <div class="wardrobe-grid">
@@ -217,6 +222,7 @@
                   <div class="form-field full-width"><label for="itemName">Название вещи</label><input id="itemName" name="name" type="text" placeholder="Например, лёгкая ветровка" maxlength="80" required></div>
                   <div class="form-field"><label for="itemCategory">Категория</label><select id="itemCategory" name="category" required>
                     <option value="base-top">Базовый верх</option>
+                    <option value="base-bottom">Термобельё под брюки</option>
                     <option value="mid-top">Утепляющий слой</option>
                     <option value="shell">Куртка / защита</option>
                     <option value="bottom">Низ</option>
@@ -229,14 +235,24 @@
                     <option value="1">Лёгкая</option>
                     <option value="2">Средняя</option>
                     <option value="3">Тёплая</option>
+                    <option value="4">Очень тёплая</option>
                   </select></div>
                   <fieldset class="feature-field full-width"><legend>Свойства</legend><div class="checkbox-row">
                     <label class="checkbox-label"><input id="itemWindproof" name="windproof" type="checkbox"><span>Защита от ветра</span></label>
                     <label class="checkbox-label"><input id="itemWaterproof" name="waterproof" type="checkbox"><span>Защита от дождя</span></label>
                   </div></fieldset>
+                  <fieldset id="firstLayerField" class="feature-field full-width" hidden><legend>Как носить джемпер</legend><div class="checkbox-row">
+                    <label class="checkbox-label"><input id="itemFirstLayer" name="firstLayer" type="checkbox"><span>Можно надевать первым слоем, без термобелья</span></label>
+                  </div></fieldset>
                   <fieldset class="feature-field full-width"><legend>Подходит для</legend><div class="checkbox-row">
                     <label class="checkbox-label"><input id="itemRun" name="run" type="checkbox" checked><span>Бега</span></label>
                     <label class="checkbox-label"><input id="itemHike" name="hike" type="checkbox" checked><span>Подъёма с рюкзаком</span></label>
+                  </div></fieldset>
+                  <fieldset id="shoeSurfaceField" class="feature-field full-width" hidden><legend>Подошва подходит для</legend><div class="checkbox-row">
+                    <label class="checkbox-label"><input id="itemSurfaceDry" name="surfaceDry" type="checkbox" checked><span>Сухая лестница</span></label>
+                    <label class="checkbox-label"><input id="itemSurfaceTrail" name="surfaceTrail" type="checkbox"><span>Грунт / мокро</span></label>
+                    <label class="checkbox-label"><input id="itemSurfaceSnow" name="surfaceSnow" type="checkbox"><span>Снег на асфальте</span></label>
+                    <label class="checkbox-label"><input id="itemSurfaceIce" name="surfaceIce" type="checkbox"><span>Лёд / гололёд</span></label>
                   </div></fieldset>
                   <div class="form-field full-width"><label for="itemNotes">Заметка <span class="optional">необязательно</span></label><textarea id="itemNotes" name="notes" rows="2" maxlength="280" placeholder="Например, подходит для холодного ветра"></textarea></div>
                 </div>
@@ -245,7 +261,31 @@
               </form>
             </section>
           </div>
-          <p class="privacy-note"><span aria-hidden="true">◌</span> Гардероб хранится только в этом браузере. Чтобы перенести его на другое устройство, выгрузи JSON-файл.</p>
+          <p class="privacy-note"><span aria-hidden="true">◌</span> Изменения гардероба сохраняются в этом браузере. Начальный список вещей встроен в приложение. Чтобы перенести изменения на другое устройство, выгрузи JSON-файл.</p>
+        </div>
+      </section>
+      <section class="look-section" id="look" aria-labelledby="lookTitle">
+        <div class="shell">
+          <div class="section-heading look-heading">
+            <div><div class="section-kicker">03 / ОБРАЗ ЦЕЛИКОМ</div><h2 id="lookTitle">Как это выглядит вместе</h2></div>
+            <p>Иллюстрации выбранных вещей складываются в один комплект и меняются вместе с прогнозом.</p>
+          </div>
+          <div id="lookPanel" class="look-grid" hidden>
+            <div class="look-figure-wrap">
+              <div class="look-figure-topline"><span>ТВОЙ КОМПЛЕКТ</span><span id="lookActivity">ПОХОД</span></div>
+              <div id="lookFigure" class="look-figure" role="img" aria-label="Комплект из выбранных вещей"></div>
+              <div class="look-figure-caption">КАТАЛОЖНАЯ СБОРКА · ИЛЛЮСТРАЦИИ ТВОИХ ВЕЩЕЙ</div>
+            </div>
+            <div class="look-details">
+              <p id="lookWeather" class="look-weather"></p>
+              <h3>На тебе</h3>
+              <ol id="lookWornList" class="look-list"></ol>
+              <h3>В рюкзаке</h3>
+              <ul id="lookPackList" class="look-list look-pack-list"></ul>
+              <p id="lookCaveat" class="look-caveat"></p>
+            </div>
+          </div>
+          <p id="lookEmpty" class="look-empty">Загружаем прогноз для комплекта.</p>
         </div>
       </section>
     </main>

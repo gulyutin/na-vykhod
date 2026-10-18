@@ -1,5 +1,6 @@
 export const CATEGORIES = {
   'base-top': 'Базовый верх',
+  'base-bottom': 'Термобельё под брюки',
   'mid-top': 'Утепляющий слой',
   shell: 'Куртка / защита',
   bottom: 'Низ',
@@ -50,7 +51,8 @@ export function summarizeForecast(hourly, startIndex, durationHours) {
 
 export function weatherLabel(code) {
   if (code === 0) return 'Ясно';
-  if (code <= 3) return 'Облачно';
+  if (code === 1 || code === 2) return 'Переменная облачность';
+  if (code === 3) return 'Облачно';
   if (code === 45 || code === 48) return 'Туман';
   if (code >= 51 && code <= 67) return 'Дождь';
   if (code >= 71 && code <= 77) return 'Снег';
@@ -60,7 +62,7 @@ export function weatherLabel(code) {
   return 'Переменная погода';
 }
 
-export function recommendOutfit(metrics, wardrobe, activity, durationHours) {
+export function recommendOutfit(metrics, wardrobe, activity, durationHours, surface = 'dry') {
   const hike = activity === 'hike';
   const t = metrics.tempMin;
   const wet = metrics.probabilityMax >= 50 || metrics.precipitationTotal >= 0.3 ||
@@ -74,13 +76,23 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours) {
   const used = new Set();
 
   function pick(category, target, required = {}) {
-    const candidates = wardrobe.filter(item => item.category === category &&
+    const mayWearJumperFirst = category === 'base-top' && t >= -3 && t <= 16;
+    const candidates = wardrobe.filter(item => (item.category === category ||
+      (mayWearJumperFirst && item.category === 'mid-top' && item.firstLayer)) &&
       (item.activities?.includes(activity) ?? true) && !used.has(item.id));
     candidates.sort((a, b) => {
       const score = item => Math.abs(item.warmth - target) * 3 +
         (item.warmth < target ? 2 : 0) +
         (required.waterproof && !item.waterproof ? 12 : 0) +
-        (required.windproof && !item.windproof && !item.waterproof ? 8 : 0);
+        (required.windproof && !item.windproof && !item.waterproof ? 8 : 0) +
+        (required.surface && item.surfaces?.length && !item.surfaces.includes(required.surface) ? 30 : 0) +
+        (required.surface === 'dry' && activity === 'run' &&
+          item.surfaces?.length === 1 && item.surfaces[0] === 'dry' ? -2 : 0) +
+        (required.surface === 'dry' && activity === 'hike' &&
+          item.surfaces?.includes('trail') ? -1 : 0) +
+        (required.sunCap && !/бейсболк|кепк/i.test(item.name) ? 20 : 0) +
+        (mayWearJumperFirst && item.category === 'mid-top' ? -4 : 0) +
+        (category === 'bottom' && /шорт/i.test(item.name) ? (t >= 22 ? -4 : t <= 16 ? 12 : 0) : 0);
       return score(a) - score(b);
     });
     const item = candidates[0] ?? null;
@@ -90,32 +102,55 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours) {
 
   function add(targetList, category, label, warmth, required = {}) {
     const item = pick(category, warmth, required);
-    targetList.push({ category, label, item });
+    const unsuitableSurface = required.surface && item?.surfaces?.length &&
+      !item.surfaces.includes(required.surface);
+    const unsuitableWarmth = category === 'base-top' && warmth === 1 && item?.warmth > 1;
+    const unsuitableCap = required.sunCap && item && !/бейсболк|кепк/i.test(item.name);
+    targetList.push({ category, label, item: unsuitableSurface || unsuitableWarmth || unsuitableCap ? null : item });
     if (!item) missing.push(label);
+    else if (unsuitableSurface)
+      missing.push(`Обувь для покрытия «${surface === 'ice' ? 'лёд / гололёд' : surface === 'snow' ? 'снег на асфальте' : surface === 'trail' ? 'грунт / мокро' : 'сухая лестница'}» вместо «${item.name}»`);
+    else if (unsuitableWarmth)
+      missing.push(`Лёгкий верх для тепла вместо «${item.name}»`);
+    else if (unsuitableCap) missing.push(`Кепка от солнца вместо «${item.name}»`);
     else if (required.waterproof && !item.waterproof) missing.push(`Влагозащитный слой вместо «${item.name}»`);
     else if (required.windproof && !item.windproof && !item.waterproof) missing.push(`Ветрозащитный слой вместо «${item.name}»`);
+    return unsuitableSurface || unsuitableWarmth || unsuitableCap ? null : item;
   }
 
-  const baseWarmth = t >= 17 ? 1 : t >= 3 ? 2 : 3;
-  const bottomWarmth = t >= 18 ? 1 : t >= 2 ? 2 : 3;
-  add(wear, 'base-top', t >= 17 ? 'Лёгкий дышащий верх' : 'Влагоотводящий базовый верх', baseWarmth);
+  const baseWarmth = t >= 10 ? 1 : t >= 3 ? 2 : 3;
+  const bottomWarmth = t >= 3 ? 1 : t >= -8 ? 2 : 3;
+  const firstTop = add(wear, 'base-top', t >= 17 ? 'Лёгкий дышащий верх' : 'Первый слой на тело', baseWarmth);
+  if (t <= -5) add(wear, 'base-bottom', 'Термобельё под брюки', t <= -15 ? 3 : 2);
   add(wear, 'bottom', t >= 18 ? 'Лёгкий низ' : 'Тайтсы или брюки по погоде', bottomWarmth);
-  add(wear, 'shoes', hike ? 'Обувь для подъёма' : 'Беговая обувь', wet && t <= 5 ? 2 : 1);
+  add(wear, 'shoes', hike ? 'Обувь для подъёма' : 'Беговая обувь', surface === 'ice' ? 2 : 1,
+    { surface });
 
-  const wearMid = hike ? t < -4 : t < -9;
-  if (wearMid) add(wear, 'mid-top', 'Утепляющий слой', t < -12 ? 3 : 2);
-  if (wet || wind || t < -6) {
-    add(wear, 'shell', wet ? (snow ? 'Защита от мокрого снега' : 'Защита от дождя') : 'Защита от ветра', 1,
-      wet ? { waterproof: true } : { windproof: true });
+  const jumperIsFirstLayer = firstTop?.category === 'mid-top';
+  const wearMid = (hike ? t <= 3 : t <= 0) && !jumperIsFirstLayer;
+  if (wearMid) add(wear, 'mid-top', 'Утепляющий слой', t <= -12 ? 3 : t <= -4 ? 2 : 1);
+  if (wet || wind || t <= (hike ? 3 : 1)) {
+    const shellWarmth = t <= -14 ? 4 : t <= -5 ? 3 : t <= 5 ? 2 : 1;
+    add(wear, 'shell', wet ? (snow ? 'Защита от мокрого снега' : 'Защита от дождя') : 'Защита от холода и ветра',
+      shellWarmth, wet ? { waterproof: true } : { windproof: true });
   }
-  if (t <= 5 || (wet && t <= 12)) add(wear, 'head', 'Головной убор', t <= -8 ? 3 : t <= 0 ? 2 : 1);
+  let headwear = null;
+  if (t <= 5 || (wet && t <= 12))
+    headwear = add(wear, 'head', 'Головной убор', t <= -15 ? 3 : t <= 0 ? 2 : 1);
+  else if (t >= 20 && metrics.codes.some(code => code <= 2))
+    headwear = add(wear, 'head', 'Кепка от солнца', 1, { sunCap: true });
   if (t <= 2 || (wind && t <= 8)) add(wear, 'hands', 'Перчатки', t <= -8 ? 3 : 1);
-  if (t <= -9 || (wind && t <= 0)) add(wear, 'neck', 'Бафф / защита лица и шеи', t <= -12 ? 3 : 1);
+  if ((t <= -9 || (wind && t <= 0)) && !headwear?.coversNeck)
+    add(wear, 'neck', 'Бафф / защита лица и шеи', t <= -12 ? 3 : 1);
 
   if (hike && !wearMid && (t <= 15 || durationHours >= 2)) {
     add(carry, 'mid-top', 'Сухой утепляющий слой на остановку и спуск', t <= 3 ? 3 : 2);
   }
-  if (hike && !wet && !wind && t >= -6 && t <= 17) {
+  if (hike && wearMid && t <= 5 && durationHours >= 2) {
+    add(carry, 'mid-top', 'Дополнительный слой на остановку и спуск', t <= -8 ? 3 : 2);
+  }
+  if (hike && !wet && !wind && t >= -6 && t <= 17 &&
+    !wear.some(entry => entry.category === 'shell' && entry.item)) {
     const shell = pick('shell', 1, { windproof: true });
     if (shell) carry.push({ category: 'shell', label: 'Защита от ветра на вершине', item: shell });
   }
@@ -124,6 +159,10 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours) {
   else advice.push('Начните чуть прохладно: при непрерывном беге тело быстро согреется.');
   if (wet && t <= 10) advice.push('В сырость избегайте хлопка и держите сухой слой для возвращения.');
   if (wind) advice.push('На открытой вершине порывы могут быть сильнее модельного прогноза.');
+  if (surface === 'ice') advice.push('На льду выбирайте обувь с надёжным сцеплением; очищенная сухая лестница требует другой пары.');
+  if (surface === 'snow') advice.push('Для снега на асфальте подойдут трейловые кроссовки; при гололёде переключите покрытие на лёд.');
+  if (snow && surface === 'dry') advice.push('Если на лестнице появился снег или лёд, переключите покрытие в параметрах выхода.');
+  if (surface === 'trail' && wet) advice.push('На мокром грунте и ступенях проверяйте сцепление подошвы.');
   if (t >= 27) advice.push('Выберите более прохладное время, возьмите воду и сократите нагрузку при перегреве.');
   if (t <= -15 || metrics.apparentMin <= -20) advice.push('Сильный холод: закройте открытые участки кожи и оцените, стоит ли выходить.');
   if (metrics.gustMax >= 60 || metrics.precipitationTotal >= 5) advice.push('Сильный ветер или осадки: проверьте условия перед выходом и возможность развернуться.');

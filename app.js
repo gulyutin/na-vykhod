@@ -1,4 +1,5 @@
-import { CATEGORIES, recommendOutfit, summarizeForecast, weatherLabel } from './logic.mjs';
+import { CATEGORIES, recommendOutfit, summarizeForecast, weatherLabel } from './logic.mjs?v=4';
+import { PERSONAL_WARDROBE } from './wardrobe-defaults.mjs?v=4';
 
 const ROUTE_PLACE = Object.freeze({
   name: 'Караульная гора · часовня',
@@ -7,11 +8,56 @@ const ROUTE_PLACE = Object.freeze({
   route: true,
 });
 const WARDROBE_KEY = 'na-vykhod:wardrobe:v1';
+const PERSONAL_SEED_KEY_V1 = 'na-vykhod:personal-seed:2026-10-18';
+const PERSONAL_SEED_KEY_V2 = 'na-vykhod:personal-seed:v2:2026-10-18';
+const PERSONAL_SEED_KEY_V3 = 'na-vykhod:personal-seed:v3:2026-10-18';
+const PERSONAL_SEED_KEY_V4 = 'na-vykhod:personal-seed:v4:2026-10-18';
+const PERSONAL_SEED_KEY_V5 = 'na-vykhod:personal-seed:v5:2026-10-18';
+const PERSONAL_SEED_KEY_V6 = 'na-vykhod:personal-seed:v6:2026-10-18';
 const PLACE_KEY = 'na-vykhod:place:v1';
 const ACTIVITY_KEY = 'na-vykhod:activity:v1';
+const SURFACE_KEY = 'na-vykhod:surface:v1';
 const WEATHER_KEY = 'na-vykhod:weather:v1';
 const CATEGORIES_SET = new Set(Object.keys(CATEGORIES));
 const $ = id => document.getElementById(id);
+const ITEM_IMAGES = new Map([
+  ['Джемпер half-zip GRI Винд', 'gri-wind.webp'],
+  ['Джемпер half-zip GRI Норд', 'gri-nord.webp'],
+  ['Джемпер флисовый Glissade', 'glissade-fleece.webp'],
+  ['Брюки Demix', 'demix-pants.webp'],
+  ['Брюки мужские GRI Джеди', 'gri-jedy.webp'],
+  ['Брюки для беговых лыж Madshus', 'madshus-pants.webp'],
+  ['Термобельё — верх', 'thermal-top.webp'],
+  ['Термобельё — низ', 'thermal-bottom.webp'],
+  ['Шапка Madshus', 'madshus-hat.webp'],
+  ['Куртка мембранная Northland Glodis', 'northland-glodis.webp'],
+  ['Куртка софтшелл', 'softshell-jacket.webp'],
+  ['Оранжевая ветровка Uniqlo', 'uniqlo-windbreaker.webp'],
+  ['Шапка флисовая', 'fleece-hat.webp'],
+  ['Куртка для беговых лыж Nordway', 'nordway-ski-jacket.webp'],
+  ['Шорты Athlex', 'athlex-shorts.webp'],
+  ['ASICS GEL-FujiSetsu 3 G-TX', 'asics-fujisetsu.webp'],
+  ['ASICS Gel-Sonoma 8', 'asics-sonoma.webp'],
+  ['ASICS Novablast 5', 'asics-novablast.webp'],
+  ['Бейсболка ASICS', 'asics-cap.webp'],
+  ['Тёплый бафф', 'insulated-buff.webp'],
+  ['Лёгкий бафф «Большая волна»', 'warm-buff.webp'],
+  ['Балаклава флисовая', 'fleece-balaclava.webp'],
+  ['Перчатки тонкие беговые', 'running-gloves.webp'],
+  ['Тёплые варежки GRI (тип Полар)', 'gri-mittens.webp'],
+]);
+const LEGACY_NAMES = new Map([
+  ['Брюки мужские Demix · арт. 130180DMX-V3-44-46', 'Брюки Demix'],
+  ['Брюки для беговых лыж Madshus · 124830M01-99-52', 'Брюки для беговых лыж Madshus'],
+  ['Шапка Madshus · 131923M01-99-one size', 'Шапка Madshus'],
+  ['Куртка мембранная Northland Glodis · 129343N16-N4-52', 'Куртка мембранная Northland Glodis'],
+  ['Оранжевая ветровка Uniqlo · тип 444550COL62', 'Оранжевая ветровка Uniqlo'],
+  ['Куртка софтшелл (модель не указана)', 'Куртка софтшелл'],
+  ['Куртка для беговых лыж Nordway · 138174NDW-AB-52', 'Куртка для беговых лыж Nordway'],
+  ['Джемпер флисовый Glissade, серый · тип 138587GSD-BA-52', 'Джемпер флисовый Glissade'],
+  ['Шорты Athlex · тип 133110A31-99-46', 'Шорты Athlex'],
+  ['Бафф тёплый', 'Тёплый бафф'],
+]);
 const storage = {
   get(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
   set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { return false; } },
@@ -39,26 +85,118 @@ function normalizeItem(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const name = String(raw.name ?? '').trim().slice(0, 80);
   if (!name || !CATEGORIES_SET.has(raw.category)) return null;
-  const warmth = Math.min(3, Math.max(1, Math.round(Number(raw.warmth) || 1)));
+  const warmth = Math.min(4, Math.max(1, Math.round(Number(raw.warmth) || 1)));
   const activities = Array.isArray(raw.activities)
     ? raw.activities.filter(x => x === 'run' || x === 'hike')
     : ['run', 'hike'];
+  const allowedSurfaces = new Set(['dry', 'trail', 'snow', 'ice']);
+  const surfaces = raw.category === 'shoes'
+    ? (Array.isArray(raw.surfaces) ? raw.surfaces.filter(x => allowedSurfaces.has(x)) : ['dry'])
+    : [];
   return {
     id: String(raw.id || makeId()), name, category: raw.category, warmth,
     windproof: Boolean(raw.windproof), waterproof: Boolean(raw.waterproof),
+    coversNeck: Boolean(raw.coversNeck),
+    firstLayer: raw.category === 'mid-top' && Boolean(raw.firstLayer),
     activities: activities.length ? [...new Set(activities)] : ['run', 'hike'],
-    notes: String(raw.notes ?? '').trim().slice(0, 240),
+    surfaces: raw.category === 'shoes' ? ([...new Set(surfaces)].length ? [...new Set(surfaces)] : ['dry']) : [],
+    notes: String(raw.notes ?? '').trim().slice(0, 280),
     demo: Boolean(raw.demo),
   };
 }
 
 const savedItems = storage.get(WARDROBE_KEY);
+function seedPersonalWardrobe(items) {
+  const wardrobe = Array.isArray(items) ? items.map(normalizeItem).filter(Boolean) : [];
+  if (storage.get(PERSONAL_SEED_KEY_V6) === true) return wardrobe;
+  const hadV4 = storage.get(PERSONAL_SEED_KEY_V4) === true;
+  const defaults = PERSONAL_WARDROBE.map(normalizeItem).filter(Boolean);
+  const isSameItem = (a, b) => a.category === b.category &&
+    a.name.toLocaleLowerCase('ru-RU') === b.name.toLocaleLowerCase('ru-RU');
+  const newAccessories = new Set(['Бейсболка ASICS', 'Тёплый бафф', 'Балаклава флисовая',
+    'Перчатки тонкие беговые', 'Тёплые варежки GRI (тип Полар)']);
+  if (hadV4 || storage.get(PERSONAL_SEED_KEY_V3) === true) {
+    // Existing browser edits stay intact; only the newly reported jacket is added below.
+  } else if (storage.get(PERSONAL_SEED_KEY_V2) === true) {
+    const uniqlo = defaults.find(item => item.name.startsWith('Оранжевая ветровка Uniqlo'));
+    const oldUniqlo = wardrobe.find(item => item.category === 'shell' &&
+      /^(Очень тонкая ветровка Uniqlo|Ветровка Uniqlo)/i.test(item.name));
+    if (uniqlo && oldUniqlo) Object.assign(oldUniqlo, { ...uniqlo, id: oldUniqlo.id });
+    for (const item of defaults.filter(item => newAccessories.has(item.name))) {
+      if (!wardrobe.some(existing => isSameItem(existing, item))) wardrobe.push(item);
+    }
+  } else if (storage.get(PERSONAL_SEED_KEY_V1) === true) {
+    // Upgrade only starter items still present; intentionally leave removed items removed.
+    for (const item of wardrobe) {
+      const updated = defaults.find(candidate => isSameItem(item, candidate));
+      if (!updated) continue;
+      item.warmth = updated.warmth;
+      item.windproof = updated.windproof;
+      item.waterproof = updated.waterproof;
+      item.surfaces = [...updated.surfaces];
+      item.coversNeck = updated.coversNeck;
+      item.notes = updated.notes;
+    }
+    const uniqlo = defaults.find(item => item.name.startsWith('Оранжевая ветровка Uniqlo'));
+    if (uniqlo && !wardrobe.some(item => isSameItem(item, uniqlo))) wardrobe.push(uniqlo);
+    for (const item of defaults.filter(item => newAccessories.has(item.name))) {
+      if (!wardrobe.some(existing => isSameItem(existing, item))) wardrobe.push(item);
+    }
+  } else {
+    for (const item of defaults) {
+      if (!wardrobe.some(existing => isSameItem(existing, item))) wardrobe.push(item);
+    }
+  }
+  for (const item of wardrobe) {
+    const newName = LEGACY_NAMES.get(item.name);
+    if (newName) {
+      item.name = newName;
+      const updated = defaults.find(candidate => isSameItem(item, candidate));
+      if (updated) item.notes = updated.notes;
+    }
+  }
+  const colorHints = new Map([
+    ['Джемпер half-zip GRI Винд', 'Тёмно-синий'],
+    ['Джемпер half-zip GRI Норд', 'Какао'],
+    ['Брюки мужские GRI Джеди', 'Тёмно-синие'],
+    ['Шапка флисовая', 'Хаки'],
+    ['ASICS GEL-FujiSetsu 3 G-TX', 'Чёрные с зелёными вставками и шнурками'],
+    ['ASICS Gel-Sonoma 8', 'Чёрные с мятными вставками и шнурками'],
+    ['ASICS Novablast 5', 'Оранжевая лимитированная версия Tokyo'],
+    ['Балаклава флисовая', 'Синяя'],
+    ['Тёплые варежки GRI (тип Полар)', 'Тёмно-синие'],
+  ]);
+  for (const item of wardrobe) {
+    const hint = colorHints.get(item.name);
+    if (hint && !item.notes.toLocaleLowerCase('ru-RU').includes(hint.toLocaleLowerCase('ru-RU')))
+      item.notes = `${hint}. ${item.notes}`;
+  }
+  const softshell = defaults.find(item => item.name === 'Куртка софтшелл');
+  if (softshell && !wardrobe.some(item => isSameItem(item, softshell))) wardrobe.push(softshell);
+  const lightBuff = defaults.find(item => item.name === 'Лёгкий бафф «Большая волна»');
+  if (lightBuff && !wardrobe.some(item => isSameItem(item, lightBuff))) wardrobe.push(lightBuff);
+  const nordway = wardrobe.find(item => item.name === 'Куртка для беговых лыж Nordway');
+  if (nordway?.warmth === 3) nordway.warmth = 4;
+  for (const item of wardrobe) {
+    if (item.category === 'mid-top' &&
+      ['Джемпер half-zip GRI Винд', 'Джемпер half-zip GRI Норд'].includes(item.name)) item.firstLayer = true;
+  }
+  if (storage.set(WARDROBE_KEY, wardrobe)) {
+    storage.set(PERSONAL_SEED_KEY_V2, true);
+    storage.set(PERSONAL_SEED_KEY_V3, true);
+    storage.set(PERSONAL_SEED_KEY_V4, true);
+    storage.set(PERSONAL_SEED_KEY_V5, true);
+    storage.set(PERSONAL_SEED_KEY_V6, true);
+  }
+  return wardrobe;
+}
 const savedPlace = storage.get(PLACE_KEY);
 const state = {
-  wardrobe: Array.isArray(savedItems) ? savedItems.map(normalizeItem).filter(Boolean) : [],
+  wardrobe: seedPersonalWardrobe(savedItems),
   place: savedPlace && Number.isFinite(Number(savedPlace.latitude)) && Number.isFinite(Number(savedPlace.longitude))
     ? savedPlace : { ...ROUTE_PLACE },
   activity: storage.get(ACTIVITY_KEY) === 'run' ? 'run' : 'hike',
+  surface: ['dry', 'trail', 'snow', 'ice'].includes(storage.get(SURFACE_KEY)) ? storage.get(SURFACE_KEY) : 'dry',
   forecast: null,
   fetchedAt: null,
   fromCache: false,
@@ -76,6 +214,33 @@ function formatNumber(n, digits = 0) {
 }
 function temp(n) {
   return `${n > 0 ? '+' : ''}${formatNumber(Math.round(n))}°`;
+}
+function weatherIconName(code) {
+  if (code === 0) return 'sun';
+  if (code <= 2) return 'partly';
+  if (code === 3) return 'cloud';
+  if (code === 45 || code === 48) return 'fog';
+  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return 'rain';
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'snow';
+  if (code >= 95) return 'storm';
+  return 'cloud';
+}
+function renderHeroWeather(codes) {
+  const conditions = codes.map(weatherIconName);
+  const scene = conditions.includes('snow') ? 'snow'
+    : conditions.some(condition => condition === 'rain' || condition === 'storm') ? 'rain'
+      : conditions.some(condition => condition === 'cloud' || condition === 'fog') ? 'cloud' : 'clear';
+  const hero = document.querySelector('.hero-art');
+  if (hero) {
+    hero.dataset.weather = scene;
+    hero.style.setProperty('--hero-scene', `url("assets/hero-${scene}.webp")`);
+  }
+  return codes.find(code => {
+    const condition = weatherIconName(code);
+    return scene === 'snow' ? condition === 'snow'
+      : scene === 'rain' ? condition === 'rain' || condition === 'storm'
+        : scene === 'cloud' ? condition === 'cloud' || condition === 'fog' : true;
+  }) ?? codes[0] ?? 3;
 }
 function formatTime(epoch, options = {}) {
   return new Intl.DateTimeFormat('ru-RU', {
@@ -129,6 +294,9 @@ async function fetchWeather() {
   setMessage('weatherStatus', 'Загружаю прогноз…');
   $('weatherPanel').hidden = true;
   $('recommendationPanel').hidden = true;
+  $('lookPanel').hidden = true;
+  $('lookEmpty').hidden = false;
+  $('lookEmpty').textContent = 'Загружаем прогноз для комплекта.';
   $('refreshWeather').disabled = true;
   try {
     const data = await fetchJson(weatherUrl());
@@ -156,6 +324,7 @@ async function fetchWeather() {
       $('recommendationPanel').hidden = true;
       setMessage('weatherStatus', 'Не удалось получить прогноз. Проверьте интернет и обновите погоду.', 'error');
       setMessage('recommendationStatus', 'Для рекомендации нужен прогноз погоды.');
+      $('lookEmpty').textContent = 'Не удалось получить прогноз для комплекта. Обновите погоду.';
     }
   } finally { $('refreshWeather').disabled = false; }
 }
@@ -214,10 +383,16 @@ function renderForecast() {
     return;
   }
   $('weatherPanel').hidden = false;
-  $('weatherTemp').textContent = temp(current.temperature_2m);
-  $('weatherDescription').textContent = weatherLabel(current.weather_code);
-  $('weatherFeels').textContent = temp(current.apparent_temperature);
-  $('weatherWind').textContent = `${formatNumber(current.wind_speed_10m)} км/ч`;
+  const hourly = state.forecast.hourly;
+  const leavingNow = state.selectedStart === firstIndex;
+  const atStart = field => leavingNow ? current[field] : hourly[field][state.selectedStart];
+  const codes = metrics.codes;
+  const outlookCode = renderHeroWeather(leavingNow ? [current.weather_code, ...codes] : codes);
+  $('weatherTemp').textContent = temp(atStart('temperature_2m'));
+  $('weatherDescription').textContent = weatherLabel(outlookCode);
+  $('weatherIconUse').setAttribute('href', `#wx-${weatherIconName(outlookCode)}`);
+  $('weatherFeels').textContent = temp(atStart('apparent_temperature'));
+  $('weatherWind').textContent = `${formatNumber(atStart('wind_speed_10m'))} км/ч`;
   $('weatherGust').textContent = `${formatNumber(metrics.gustMax)} км/ч`;
   $('weatherRain').textContent = `${formatNumber(metrics.probabilityMax)}% · ${formatNumber(metrics.precipitationTotal, 1)} мм`;
   $('weatherRange').textContent = `${temp(metrics.tempMin)}…${temp(metrics.tempMax)}`;
@@ -250,7 +425,7 @@ function renderOutfitList(id, entries) {
 }
 
 function renderRecommendation(metrics, duration) {
-  const result = recommendOutfit(metrics, state.wardrobe, state.activity, duration);
+  const result = recommendOutfit(metrics, state.wardrobe, state.activity, duration, state.surface);
   $('recommendationPanel').hidden = false;
   $('summaryText').textContent = result.summary;
   const parts = [
@@ -278,6 +453,85 @@ function renderRecommendation(metrics, duration) {
     }
     missingList.parentElement.hidden = false;
   } else missingList.parentElement.hidden = true;
+  renderLook(result, metrics);
+}
+
+function addLookItems(listId, entries, emptyText) {
+  const list = $(listId);
+  list.replaceChildren();
+  if (!entries.length) {
+    const li = document.createElement('li');
+    li.textContent = emptyText;
+    li.className = 'look-list-empty';
+    list.append(li);
+    return;
+  }
+  for (const entry of entries) {
+    const li = document.createElement('li');
+    li.textContent = entry.item?.name ?? `${entry.label} — нет в гардеробе`;
+    if (!entry.item) li.className = 'look-list-missing';
+    list.append(li);
+  }
+}
+
+function makeLookPiece(entry, slot, caption) {
+  const piece = document.createElement('div');
+  piece.className = `look-piece look-piece--${slot}`;
+  piece.title = entry.item.name;
+  const media = document.createElement('div');
+  media.className = 'look-piece__media';
+  const imageName = ITEM_IMAGES.get(entry.item.name);
+  if (imageName) {
+    const image = document.createElement('img');
+    image.src = `assets/items/${imageName}`;
+    image.alt = '';
+    image.decoding = 'async';
+    media.append(image);
+  } else {
+    media.classList.add('look-piece__media--unknown');
+    media.textContent = entry.item.name;
+  }
+  const label = document.createElement('span');
+  label.className = 'look-piece__label';
+  label.textContent = caption;
+  piece.append(media, label);
+  return piece;
+}
+
+function renderLook(result, metrics) {
+  const worn = result.wear.filter(entry => entry.item);
+  const find = category => worn.find(entry => entry.category === category);
+  const head = find('head');
+  const top = find('shell') || find('mid-top') || find('base-top');
+  const bottom = find('bottom') || find('base-bottom');
+  const shoes = find('shoes');
+  const main = [head, top, bottom, shoes].filter(Boolean);
+  const figure = $('lookFigure');
+  figure.replaceChildren();
+  if (head) figure.append(makeLookPiece(head, 'head', 'ГОЛОВА'));
+  if (top) figure.append(makeLookPiece(top, 'top', 'ВЕРХНИЙ СЛОЙ'));
+  if (bottom) figure.append(makeLookPiece(bottom, 'bottom', 'НИЗ'));
+  if (shoes) figure.append(makeLookPiece(shoes, 'shoes', 'ОБУВЬ'));
+  const otherLabels = {
+    'base-top': 'БАЗОВЫЙ СЛОЙ',
+    'mid-top': 'СРЕДНИЙ СЛОЙ',
+    'base-bottom': 'НИЖНИЙ СЛОЙ',
+    neck: 'ШЕЯ',
+    hands: 'РУКИ',
+  };
+  worn.filter(entry => !main.includes(entry)).forEach((entry, index) => {
+    figure.append(makeLookPiece(entry, `mini-${index + 1}`, otherLabels[entry.category] || 'ДЕТАЛЬ'));
+  });
+  figure.setAttribute('aria-label', `Комплект: ${worn.map(entry => entry.item.name).join(', ')}`);
+  $('lookActivity').textContent = state.activity === 'hike' ? 'ПОДЪЁМ С РЮКЗАКОМ' : 'БЕГ';
+  $('lookWeather').textContent = `${temp(metrics.tempMin)}…${temp(metrics.tempMax)} · ${state.place.name}`;
+  addLookItems('lookWornList', result.wear, 'По этому прогнозу комплект не собран.');
+  addLookItems('lookPackList', result.carry, 'Дополнительные вещи не нужны.');
+  $('lookCaveat').textContent = result.missing.length
+    ? `Нужно уточнить или добавить: ${result.missing.join('; ')}.`
+    : 'Каталожная сборка показывает выбранные вещи; посадка одежды и сочетание слоёв могут отличаться.';
+  $('lookPanel').hidden = false;
+  $('lookEmpty').hidden = true;
 }
 
 function wardrobeMessage(message, kind = '') { setMessage('wardrobeMessage', message, kind); }
@@ -287,7 +541,7 @@ function saveWardrobe(message = 'Гардероб сохранён в этом �
   renderWardrobe();
   if (state.forecast) renderForecast();
 }
-function warmthLabel(value) { return ['лёгкая', 'средняя', 'тёплая'][value - 1] || 'лёгкая'; }
+function warmthLabel(value) { return ['лёгкая', 'средняя', 'тёплая', 'очень тёплая'][value - 1] || 'лёгкая'; }
 function renderWardrobe() {
   const list = $('wardrobeList');
   list.replaceChildren();
@@ -302,10 +556,25 @@ function renderWardrobe() {
     list.append(empty);
     return;
   }
-  const sorted = [...state.wardrobe].sort((a, b) => Object.keys(CATEGORIES).indexOf(a.category) - Object.keys(CATEGORIES).indexOf(b.category));
+  const categoryOrder = Object.keys(CATEGORIES);
+  const sorted = [...state.wardrobe].sort((a, b) =>
+    categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category) || a.warmth - b.warmth);
   for (const item of sorted) {
     const row = document.createElement('div');
     row.className = 'wardrobe-item';
+    const imageName = ITEM_IMAGES.get(item.name);
+    if (imageName) {
+      row.classList.add('has-image');
+      const media = document.createElement('div');
+      media.className = 'wardrobe-item__media';
+      const image = document.createElement('img');
+      image.src = `assets/items/${imageName}`;
+      image.alt = `Иллюстрация: ${item.name}`;
+      image.loading = 'lazy';
+      image.decoding = 'async';
+      media.append(image);
+      row.append(media);
+    }
     const info = document.createElement('div');
     info.className = 'wardrobe-item__info';
     const name = document.createElement('strong');
@@ -313,9 +582,17 @@ function renderWardrobe() {
     const meta = document.createElement('small');
     meta.textContent = [CATEGORIES[item.category], warmthLabel(item.warmth),
       item.waterproof ? 'от дождя' : item.windproof ? 'от ветра' : null,
+      item.coversNeck ? 'закрывает шею' : null,
+      item.firstLayer ? 'можно первым слоем' : null,
       item.activities.length === 1 ? (item.activities[0] === 'run' ? 'для бега' : 'для подъёма') : null,
       item.demo ? 'пример' : null].filter(Boolean).join(' · ');
     info.append(name, meta);
+    if (item.notes) {
+      const note = document.createElement('small');
+      note.className = 'wardrobe-item__note';
+      note.textContent = item.notes;
+      info.append(note);
+    }
     const actions = document.createElement('div');
     actions.className = 'wardrobe-item-actions';
     for (const [action, label] of [['edit', 'Изменить'], ['delete', 'Удалить']]) {
@@ -337,6 +614,16 @@ function resetItemForm() {
   $('itemRun').checked = true;
   $('itemHike').checked = true;
   $('cancelEdit').hidden = true;
+  $('itemSurfaceDry').checked = true;
+  $('itemSurfaceTrail').checked = false;
+  $('itemSurfaceSnow').checked = false;
+  $('itemSurfaceIce').checked = false;
+  $('itemFirstLayer').checked = false;
+  syncShoeSurfaceField();
+}
+function syncShoeSurfaceField() {
+  $('shoeSurfaceField').hidden = $('itemCategory').value !== 'shoes';
+  $('firstLayerField').hidden = $('itemCategory').value !== 'mid-top';
 }
 function editItem(item) {
   $('itemId').value = item.id;
@@ -345,15 +632,23 @@ function editItem(item) {
   $('itemWarmth').value = String(item.warmth);
   $('itemWindproof').checked = item.windproof;
   $('itemWaterproof').checked = item.waterproof;
+  $('itemFirstLayer').checked = item.firstLayer;
   $('itemRun').checked = item.activities.includes('run');
   $('itemHike').checked = item.activities.includes('hike');
   $('itemNotes').value = item.notes;
+  $('itemSurfaceDry').checked = item.surfaces?.includes('dry') ?? true;
+  $('itemSurfaceTrail').checked = item.surfaces?.includes('trail') ?? false;
+  $('itemSurfaceSnow').checked = item.surfaces?.includes('snow') ?? false;
+  $('itemSurfaceIce').checked = item.surfaces?.includes('ice') ?? false;
+  syncShoeSurfaceField();
   $('cancelEdit').hidden = false;
   $('itemForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
   $('itemName').focus();
 }
 
 function bindWardrobe() {
+  $('itemCategory').addEventListener('change', syncShoeSurfaceField);
+  syncShoeSurfaceField();
   $('itemForm').addEventListener('submit', event => {
     event.preventDefault();
     const activities = [];
@@ -361,10 +656,21 @@ function bindWardrobe() {
     if ($('itemHike').checked) activities.push('hike');
     if (!activities.length) { wardrobeMessage('Выберите хотя бы один вид активности.', 'error'); return; }
     const id = $('itemId').value || makeId();
+    const previous = state.wardrobe.find(x => x.id === id);
+    const surfaces = [['dry', 'itemSurfaceDry'], ['trail', 'itemSurfaceTrail'],
+      ['snow', 'itemSurfaceSnow'], ['ice', 'itemSurfaceIce']]
+      .filter(([, field]) => $(field).checked).map(([value]) => value);
+    if ($('itemCategory').value === 'shoes' && !surfaces.length) {
+      wardrobeMessage('Выберите хотя бы одно покрытие для обуви.', 'error');
+      return;
+    }
     const raw = {
       id, name: $('itemName').value, category: $('itemCategory').value,
       warmth: $('itemWarmth').value, windproof: $('itemWindproof').checked,
       waterproof: $('itemWaterproof').checked, activities, notes: $('itemNotes').value,
+      firstLayer: $('itemFirstLayer').checked,
+      coversNeck: previous?.coversNeck,
+      surfaces,
     };
     const item = normalizeItem(raw);
     if (!item) { wardrobeMessage('Укажите название и тип вещи.', 'error'); return; }
@@ -436,6 +742,12 @@ function bindWardrobe() {
 }
 
 function bindControls() {
+  $('surfaceSelect').value = state.surface;
+  $('surfaceSelect').addEventListener('change', () => {
+    state.surface = $('surfaceSelect').value;
+    storage.set(SURFACE_KEY, state.surface);
+    if (state.forecast) renderForecast();
+  });
   document.querySelectorAll('[data-activity]').forEach(button => {
     button.addEventListener('click', () => {
       state.activity = button.dataset.activity;

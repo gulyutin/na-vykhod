@@ -143,7 +143,8 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours, surf
     const item = pick(category, warmth, required);
     const unsuitableSurface = required.surface && item?.surfaces?.length &&
       !item.surfaces.includes(required.surface);
-    const unsuitableWarmth = category === 'base-top' && warmth === 1 && item?.warmth > 1;
+    const unsuitableWarmth = category === 'base-top' && warmth === 1 &&
+      !required.permitWarmerFirstLayer && item?.warmth > 1;
     const unsuitableCap = required.sunCap && item && !/бейсболк|кепк/i.test(item.name);
     targetList.push({ category, label, item: unsuitableSurface || unsuitableWarmth || unsuitableCap ? null : item });
     if (!item) missing.push(label);
@@ -159,9 +160,14 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours, surf
     return unsuitableSurface || unsuitableWarmth || unsuitableCap ? null : item;
   }
 
-  const baseWarmth = t >= 10 ? 1 : t >= 3 ? 2 : 3;
+  const shellNeeded = wet || wind || feelsCold || t <= (hike ? 3 : 1);
+  // Near zero, a shell supplies the outer warmth; start with the lightest
+  // garment the owner permits directly against the skin.
+  const lightFirstLayer = shellNeeded && t >= -3 && t <= 3;
+  const baseWarmth = lightFirstLayer ? 1 : t >= 10 ? 1 : t >= 3 ? 2 : 3;
   const bottomWarmth = t >= 3 ? 1 : t >= -8 ? 2 : 3;
-  const firstTop = add(wear, 'base-top', t >= 17 ? 'Лёгкий дышащий верх' : 'Первый слой на тело', baseWarmth);
+  const firstTop = add(wear, 'base-top', t >= 17 ? 'Лёгкий дышащий верх' : 'Первый слой на тело',
+    baseWarmth, { permitWarmerFirstLayer: lightFirstLayer });
   if (t <= (hike ? -5 : -8))
     add(wear, 'base-bottom', 'Термобельё под брюки', t <= -15 ? 3 : 2);
   add(wear, 'bottom', t >= 18 ? 'Лёгкий низ' : 'Основной слой для ног', bottomWarmth);
@@ -171,7 +177,7 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours, surf
   const jumperIsFirstLayer = firstTop?.category === 'mid-top';
   const wearMid = (hike ? t <= 3 : t <= 0) && !jumperIsFirstLayer;
   if (wearMid) add(wear, 'mid-top', 'Утепляющий слой', t <= -12 ? 3 : t <= -4 ? 2 : 1);
-  if (wet || wind || feelsCold || t <= (hike ? 3 : 1)) {
+  if (shellNeeded) {
     const shellWarmth = t <= -14 ? 4 : t <= -5 ? 3 :
       t <= 1 || (hike && t <= 3) || (waterproofNeeded && t <= 5) ? 2 : 1;
     const shellLabel = waterproofNeeded

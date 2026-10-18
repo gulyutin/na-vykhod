@@ -1,5 +1,5 @@
-import { CATEGORIES, includeCurrentConditions, recommendOutfit, summarizeForecast, weatherLabel } from './logic.mjs?v=5';
-import { PERSONAL_WARDROBE } from './wardrobe-defaults.mjs?v=5';
+import { CATEGORIES, includeCurrentConditions, recommendOutfit, summarizeForecast, weatherLabel } from './logic.mjs?v=6';
+import { PERSONAL_WARDROBE } from './wardrobe-defaults.mjs?v=6';
 
 const ROUTE_PLACE = Object.freeze({
   name: 'Караульная гора · часовня',
@@ -15,6 +15,7 @@ const PERSONAL_SEED_KEY_V4 = 'na-vykhod:personal-seed:v4:2026-10-18';
 const PERSONAL_SEED_KEY_V5 = 'na-vykhod:personal-seed:v5:2026-10-18';
 const PERSONAL_SEED_KEY_V6 = 'na-vykhod:personal-seed:v6:2026-10-18';
 const PERSONAL_SEED_KEY_V7 = 'na-vykhod:personal-seed:v7:2026-10-18';
+const PERSONAL_SEED_KEY_V8 = 'na-vykhod:personal-seed:v8:2026-10-18';
 const PLACE_KEY = 'na-vykhod:place:v1';
 const ACTIVITY_KEY = 'na-vykhod:activity:v1';
 const SURFACE_KEY = 'na-vykhod:surface:v1';
@@ -109,7 +110,7 @@ function normalizeItem(raw) {
 const savedItems = storage.get(WARDROBE_KEY);
 function seedPersonalWardrobe(items) {
   const wardrobe = Array.isArray(items) ? items.map(normalizeItem).filter(Boolean) : [];
-  if (storage.get(PERSONAL_SEED_KEY_V7) === true) return wardrobe;
+  if (storage.get(PERSONAL_SEED_KEY_V8) === true) return wardrobe;
   const hadV6 = storage.get(PERSONAL_SEED_KEY_V6) === true;
   const hadV4 = storage.get(PERSONAL_SEED_KEY_V4) === true;
   const defaults = PERSONAL_WARDROBE.map(normalizeItem).filter(Boolean);
@@ -186,6 +187,8 @@ function seedPersonalWardrobe(items) {
     }
   }
   const revisedNotes = new Map([
+    ['Джемпер half-zip GRI Винд', ['Тёмно-синий. Самый лёгкий из ваших джемперов; ветрозащиту модели стоит уточнить.',
+      'Тёмно-синий. Тонкий флисовый джемпер, но ощутимо тёплый; самый лёгкий из ваших трёх джемперов по личной оценке. Ветрозащиту модели стоит уточнить.']],
     ['Джемпер half-zip GRI Норд', ['Какао. Средняя теплота по вашей оценке; флисовый средний слой.',
       'Светлое какао, как кофе с молоком. Средняя теплота по вашей оценке; тонкий флисовый джемпер.']],
     ['Куртка для беговых лыж Nordway', ['Голубая. Самая тёплая из ваших курток; мембрана 3K/3K, в сильный дождь защита ограничена.',
@@ -204,6 +207,7 @@ function seedPersonalWardrobe(items) {
     storage.set(PERSONAL_SEED_KEY_V5, true);
     storage.set(PERSONAL_SEED_KEY_V6, true);
     storage.set(PERSONAL_SEED_KEY_V7, true);
+    storage.set(PERSONAL_SEED_KEY_V8, true);
   }
   return wardrobe;
 }

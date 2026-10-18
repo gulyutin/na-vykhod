@@ -68,22 +68,41 @@ test('near-freezing wet hike wears a shell and thin layer, with another layer in
   assert.equal(result.missing.length, 0);
 });
 
-test('personal kit near zero uses Nord directly under membrane, and colder weather adds thermals', () => {
+test('personal kit near zero uses Wind directly under membrane, and colder weather adds thermals', () => {
   const wardrobe = PERSONAL_WARDROBE.map((entry, index) => ({ ...entry, id: String(index) }));
+  const jumperWarmth = ['Винд', 'Норд', 'Glissade'].map(label =>
+    wardrobe.find(x => x.category === 'mid-top' && x.name.includes(label)).warmth);
+  assert.deepEqual(jumperWarmth, [1, 2, 3]);
   const metrics = { tempMin: -1, tempMax: 1, apparentMin: -3, probabilityMax: 0,
     precipitationTotal: 0, windMax: 7, gustMax: 21, codes: [0] };
   const nearZero = recommendOutfit(metrics, wardrobe, 'hike', 2, 'dry');
-  assert.equal(nearZero.wear.find(x => x.category === 'base-top').item.name, 'Джемпер half-zip GRI Норд');
+  assert.equal(nearZero.wear.find(x => x.category === 'base-top').item.name, 'Джемпер half-zip GRI Винд');
   assert.ok(!nearZero.wear.some(x => x.category === 'mid-top'));
   assert.equal(nearZero.wear.find(x => x.category === 'shell').item.name, 'Куртка мембранная Northland Glodis');
   const nearZeroRun = recommendOutfit({ ...metrics, tempMin: -0.4 }, wardrobe, 'run', 2, 'snow');
-  assert.equal(nearZeroRun.wear.find(x => x.category === 'base-top').item.name, 'Джемпер half-zip GRI Норд');
+  assert.equal(nearZeroRun.wear.find(x => x.category === 'base-top').item.name, 'Джемпер half-zip GRI Винд');
   assert.ok(!nearZeroRun.wear.some(x => x.category === 'mid-top'));
   assert.equal(nearZeroRun.wear.find(x => x.category === 'shell').item.name, 'Куртка мембранная Northland Glodis');
   const colder = recommendOutfit({ ...metrics, tempMin: -8, tempMax: -6, apparentMin: -11 },
     wardrobe, 'hike', 2, 'dry');
   assert.equal(colder.wear.find(x => x.category === 'shell').item.name, 'Куртка софтшелл');
   assert.equal(colder.wear.find(x => x.category === 'base-top').item.name, 'Термобельё — верх');
+});
+
+test('disabling Wind as a first layer respects the wardrobe edit', () => {
+  const wardrobe = PERSONAL_WARDROBE.map((entry, index) => ({ ...entry, id: String(index) }));
+  const wind = wardrobe.find(x => x.name === 'Джемпер half-zip GRI Винд');
+  wind.firstLayer = false;
+  const metrics = { tempMin: 0, tempMax: 2, apparentMin: -2,
+    probabilityMax: 0, precipitationTotal: 0, windMax: 8, gustMax: 15, codes: [1] };
+  const result = recommendOutfit(metrics, wardrobe, 'hike', 2, 'dry');
+  assert.equal(result.wear.find(x => x.category === 'base-top').item.name, 'Джемпер half-zip GRI Норд');
+  wind.firstLayer = true;
+  const nord = wardrobe.find(x => x.name === 'Джемпер half-zip GRI Норд');
+  nord.firstLayer = false;
+  wind.firstLayer = false;
+  const noJumperFirst = recommendOutfit(metrics, wardrobe, 'hike', 2, 'dry');
+  assert.equal(noJumperFirst.wear.find(x => x.category === 'base-top').item.name, 'Термобельё — верх');
 });
 
 test('warm dry run does not add shell or cold-weather accessories', () => {

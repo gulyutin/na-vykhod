@@ -9,7 +9,7 @@ export const PERSONAL_WARDROBE = [
   {
     name: 'Джемпер half-zip GRI Винд', category: 'mid-top', warmth: 1, firstLayer: true,
     activities: ['run', 'hike'],
-    notes: 'Тёмно-синий. Самый лёгкий из ваших джемперов; ветрозащиту модели стоит уточнить.',
+    notes: 'Тёмно-синий. Тонкий флисовый джемпер, но ощутимо тёплый; самый лёгкий из ваших трёх джемперов по личной оценке. Ветрозащиту модели стоит уточнить.',
   },
   {
     name: 'Брюки мужские GRI Джеди', category: 'bottom', warmth: 2,

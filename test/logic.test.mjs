@@ -56,7 +56,7 @@ test('near-freezing wet hike wears a shell and thin layer, with another layer in
     item('Мембрана', 'shell', 1, { windproof: true, waterproof: true }),
     item('Тайтсы', 'bottom', 3),
     item('Ботинки', 'shoes', 2),
-    item('Шапка', 'head', 2),
+    item('Тонкая шапка', 'head', 1),
     item('Перчатки', 'hands', 1),
   ];
   const metrics = { tempMin: 1, tempMax: 4, apparentMin: -3, probabilityMax: 80,
@@ -133,6 +133,40 @@ test('sunny warm day chooses baseball cap ahead of a winter hat', () => {
   assert.equal(result.wear.find(x => x.category === 'head').item.name, 'Бейсболка ASICS');
 });
 
+test('thin Madshus hat stays on until the fleece threshold for each activity', () => {
+  const wardrobe = PERSONAL_WARDROBE.map((entry, index) => ({ ...entry, id: String(index) }));
+  const weather = (temperature, overrides = {}) => ({
+    tempMin: temperature, tempMax: temperature + 2, apparentMin: temperature - 2,
+    probabilityMax: 0, precipitationTotal: 0, windMax: 8, gustMax: 16,
+    codes: [1], ...overrides,
+  });
+  const hat = (temperature, activity, overrides) => recommendOutfit(
+    weather(temperature, overrides), wardrobe, activity, 1, 'dry',
+  ).wear.find(entry => entry.category === 'head')?.item?.name;
+
+  assert.equal(hat(0, 'hike'), 'Шапка Madshus');
+  assert.equal(hat(-11, 'hike'), 'Шапка Madshus');
+  assert.equal(hat(-12, 'hike'), 'Шапка флисовая');
+  assert.equal(hat(-14, 'run'), 'Шапка Madshus');
+  assert.equal(hat(-15, 'run'), 'Шапка флисовая');
+  assert.equal(hat(-20, 'hike'), 'Шапка флисовая');
+  assert.equal(hat(-21, 'hike'), 'Балаклава флисовая');
+  assert.equal(hat(-22, 'run'), 'Шапка флисовая');
+  assert.equal(hat(-23, 'run'), 'Балаклава флисовая');
+  assert.equal(hat(-10, 'run', { windMax: 28, gustMax: 45 }), 'Шапка флисовая');
+  assert.equal(hat(-10, 'run', { apparentMin: -18 }), 'Шапка флисовая');
+});
+
+test('missing thin hat does not substitute fleece or a sun cap near zero', () => {
+  const weather = { tempMin: -5, tempMax: -3, apparentMin: -7,
+    probabilityMax: 0, precipitationTotal: 0, windMax: 8, gustMax: 16, codes: [1] };
+  const result = recommendOutfit(weather, [
+    item('Шапка флисовая', 'head', 2), item('Бейсболка ASICS', 'head', 1),
+  ], 'run', 1);
+  assert.equal(result.wear.find(entry => entry.category === 'head').item, null);
+  assert.ok(result.missing.includes('Головной убор'));
+});
+
 test('missing rain protection is explicit even when a windbreaker is available', () => {
   const metrics = { tempMin: 7, tempMax: 9, apparentMin: 5, probabilityMax: 65,
     precipitationTotal: 0.7, windMax: 10, gustMax: 18, codes: [61] };
@@ -182,7 +216,7 @@ test('snowy asphalt uses trail shoes while ice uses spikes', () => {
 });
 
 test('balaclava replaces a separate buff in deep frost', () => {
-  const metrics = { tempMin: -18, tempMax: -16, apparentMin: -24, probabilityMax: 0,
+  const metrics = { tempMin: -24, tempMax: -22, apparentMin: -30, probabilityMax: 0,
     precipitationTotal: 0, windMax: 12, gustMax: 19, codes: [2] };
   const wardrobe = [
     item('Флисовая балаклава', 'head', 3, { coversNeck: true }),

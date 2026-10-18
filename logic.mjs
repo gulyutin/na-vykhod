@@ -121,7 +121,9 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours, surf
     const candidates = wardrobe.filter(item => (item.category === category ||
       (mayWearJumperFirst && item.category === 'mid-top' && item.firstLayer)) &&
       (item.activities?.includes(activity) ?? true) && !used.has(item.id) &&
-      (required.minWarmth == null || item.warmth >= required.minWarmth));
+      (required.minWarmth == null || item.warmth >= required.minWarmth) &&
+      (required.maxWarmth == null || item.warmth <= required.maxWarmth) &&
+      (!required.coldHat || !/бейсболк|кепк/i.test(item.name)));
     candidates.sort((a, b) => {
       const score = item => Math.abs(item.warmth - target) * 3 +
         (item.warmth < target ? 2 : 0) +
@@ -196,9 +198,18 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours, surf
       missing.push(`У «${shell.name}» не подтверждена защита от сильного дождя`);
   }
   let headwear = null;
-  if (t <= 5 || (wet && t <= 12))
-    headwear = add(wear, 'head', 'Головной убор', t <= -15 ? 3 : t <= 0 ? 2 : 1);
-  else if (t >= 20 && metrics.codes.some(code => code <= 2))
+  if (t <= 5 || (wet && t <= 12)) {
+    // A light sports hat is enough while moving in ordinary cold. The fleece
+    // hat comes out earlier for a hike or exposed wind; a balaclava is for
+    // deeper frost, when face and neck protection become useful.
+    const balaclavaNeeded = t <= (hike ? -21 : -23) ||
+      (t <= -18 && metrics.apparentMin <= -28);
+    const fleeceNeeded = t <= (hike ? -12 : -15) ||
+      (t <= -10 && (wind || metrics.apparentMin <= -18));
+    const warmth = balaclavaNeeded ? 3 : fleeceNeeded ? 2 : 1;
+    headwear = add(wear, 'head', 'Головной убор', warmth,
+      { minWarmth: warmth, maxWarmth: warmth, coldHat: true });
+  } else if (t >= 20 && metrics.codes.some(code => code <= 2))
     headwear = add(wear, 'head', 'Кепка от солнца', 1, { sunCap: true });
   if (t <= 2 || (wind && t <= 8)) add(wear, 'hands', 'Перчатки', t <= -8 ? 3 : 1);
   if ((t <= -9 || (wind && t <= 0)) && !headwear?.coversNeck)

@@ -1,7 +1,7 @@
-import { CATEGORIES, includeCurrentConditions, recommendOutfit, summarizeForecast, weatherLabel } from './logic.mjs?v=9';
-import { PERSONAL_WARDROBE, refreshWardrobeColors } from './wardrobe-defaults.mjs?v=9';
-import { selectHeroScene, weatherIconName } from './hero-scenes.mjs?v=9';
-import { selectMannequinPreset } from './mannequin-presets.mjs?v=9';
+import { CATEGORIES, includeCurrentConditions, recommendOutfit, summarizeForecast, weatherLabel } from './logic.mjs?v=10';
+import { PERSONAL_WARDROBE, refreshWardrobeColors } from './wardrobe-defaults.mjs?v=10';
+import { selectHeroScene, weatherIconName } from './hero-scenes.mjs?v=10';
+import { selectMannequinPreset } from './mannequin-presets.mjs?v=10';
 
 const ROUTE_PLACE = Object.freeze({
   name: 'Караульная гора · часовня',
@@ -254,11 +254,11 @@ function renderHeroWeather(metrics) {
   }
   if (hero && hero.dataset.scene !== asset) {
     const request = ++heroImageRequest;
-    const fallbackUrl = `assets/${fallback}.webp?v=9`;
+    const fallbackUrl = `assets/${fallback}.webp?v=10`;
     hero.dataset.scene = asset;
     hero.style.setProperty('--hero-scene', `url("${fallbackUrl}")`);
     if (asset !== fallback) {
-      const source = `assets/${asset}.webp?v=9`;
+      const source = `assets/${asset}.webp?v=10`;
       const image = new Image();
       image.onload = () => {
         if (request === heroImageRequest) hero.style.setProperty('--hero-scene', `url("${source}")`);
@@ -511,7 +511,7 @@ function renderHeroOutfit(result, metrics, outlookCode) {
     const imageName = entry.item && ITEM_IMAGES.get(entry.item.name);
     if (imageName) {
       const image = document.createElement('img');
-      image.src = `assets/items/${imageName}?v=9`;
+      image.src = `assets/items/${imageName}?v=10`;
       image.alt = '';
       image.loading = 'lazy';
       image.decoding = 'async';
@@ -562,7 +562,7 @@ function renderLook(result, metrics) {
   figure.dataset.preset = preset;
   const image = document.createElement('img');
   image.className = 'mannequin-photo';
-  image.src = `assets/${preset}.webp?v=9`;
+  image.src = `assets/${preset}.webp?v=10`;
   image.alt = 'Реалистичная иллюстрация одетого манекена по выбранной погоде';
   image.width = 800;
   image.height = 1100;
@@ -570,7 +570,7 @@ function renderLook(result, metrics) {
   image.decoding = 'async';
   image.onerror = () => {
     image.onerror = null;
-    image.src = 'assets/mannequin-wet-zero.webp?v=9';
+    image.src = 'assets/mannequin-wet-zero.webp?v=10';
   };
   figure.append(image);
   const roles = {
@@ -640,7 +640,7 @@ function renderWardrobe() {
       const media = document.createElement('div');
       media.className = 'wardrobe-item__media';
       const image = document.createElement('img');
-      image.src = `assets/items/${imageName}?v=9`;
+      image.src = `assets/items/${imageName}?v=10`;
       image.alt = `Иллюстрация: ${item.name}`;
       image.loading = 'lazy';
       image.decoding = 'async';

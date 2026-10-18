@@ -4,7 +4,7 @@ export const PERSONAL_WARDROBE = [
   {
     name: 'Джемпер half-zip GRI Норд', category: 'mid-top', warmth: 2, firstLayer: true,
     activities: ['run', 'hike'],
-    notes: 'Светлое какао, как кофе с молоком. Средняя теплота по вашей оценке; тонкий флисовый джемпер.',
+    notes: 'Светлый бежево-серый меланж. Средняя теплота по вашей оценке; тонкий флисовый джемпер.',
   },
   {
     name: 'Джемпер half-zip GRI Винд', category: 'mid-top', warmth: 1, firstLayer: true,
@@ -14,7 +14,7 @@ export const PERSONAL_WARDROBE = [
   {
     name: 'Брюки мужские GRI Джеди', category: 'bottom', warmth: 2,
     activities: ['run', 'hike'],
-    notes: 'Тёмно-синие. Средняя теплота среди ваших брюк по личной оценке.',
+    notes: 'Тёмно-синие с заметным сине-фиолетовым оттенком. Средняя теплота среди ваших брюк по личной оценке.',
   },
   {
     name: 'Брюки Demix', category: 'bottom', warmth: 1,
@@ -44,7 +44,7 @@ export const PERSONAL_WARDROBE = [
   {
     name: 'Куртка мембранная Northland Glodis', category: 'shell', warmth: 2,
     windproof: true, waterproof: true, activities: ['run', 'hike'],
-    notes: 'Сине-зелёная. Средняя теплота по вашей оценке; мембранная защита от осадков и ветра.',
+    notes: 'Приглушённая тёмно-зелёная с бирюзовым оттенком. Средняя теплота по вашей оценке; мембранная защита от осадков и ветра.',
   },
   {
     name: 'Оранжевая ветровка Uniqlo', category: 'shell', warmth: 1,
@@ -59,13 +59,13 @@ export const PERSONAL_WARDROBE = [
   {
     name: 'Куртка софтшелл', category: 'shell', warmth: 3,
     windproof: true, waterproof: false, activities: ['run', 'hike'],
-    notes: 'Сине-зелёная. Теплее мембраны Northland и легче лыжной Nordway по вашей оценке. Ветрозащита ориентировочная; защита от дождя не подтверждена.',
+    notes: 'Тёмная сине-зелёная, петрольного оттенка. Теплее мембраны Northland и легче лыжной Nordway по вашей оценке. Ветрозащита ориентировочная; защита от дождя не подтверждена.',
   },
   {
     name: 'Куртка для беговых лыж Nordway', category: 'shell', warmth: 4,
     windproof: true, waterproof: true,
     activities: ['run', 'hike'],
-    notes: 'Яркая светло-синяя. Самая тёплая из ваших курток; мембрана 3K/3K, в сильный дождь защита ограничена.',
+    notes: 'Ярко-синяя, кобальтового оттенка. Самая тёплая из ваших курток; мембрана 3K/3K, в сильный дождь защита ограничена.',
   },
   {
     name: 'Джемпер флисовый Glissade', category: 'mid-top', warmth: 3,
@@ -120,6 +120,43 @@ export const PERSONAL_WARDROBE = [
   {
     name: 'Тёплые варежки GRI (тип Полар)', category: 'hands', warmth: 3,
     activities: ['run', 'hike'],
-    notes: 'Тёмно-синие, как брюки Джеди. По описанию похожи на варежки GRI Полар; точную модель уточните при случае.',
+    notes: 'Тёмно-синие с оттенком индиго, как брюки Джеди. По описанию похожи на варежки GRI Полар; точную модель уточните при случае.',
   },
 ];
+
+// Refresh only stock color wording; keep every other browser edit intact.
+const COLOR_NOTE_REVISIONS = new Map([
+  ['Джемпер half-zip GRI Норд', [
+    ['Какао. Светлое какао, как кофе с молоком.', 'Светлый бежево-серый меланж.'],
+    ['Светлое какао, как кофе с молоком.', 'Светлый бежево-серый меланж.'],
+    ['Какао.', 'Светлый бежево-серый меланж.'],
+  ]],
+  ['Брюки мужские GRI Джеди', [
+    ['Тёмно-синие.', 'Тёмно-синие с заметным сине-фиолетовым оттенком.'],
+  ]],
+  ['Куртка мембранная Northland Glodis', [
+    ['Сине-зелёная.', 'Приглушённая тёмно-зелёная с бирюзовым оттенком.'],
+  ]],
+  ['Куртка софтшелл', [
+    ['Сине-зелёная.', 'Тёмная сине-зелёная, петрольного оттенка.'],
+  ]],
+  ['Куртка для беговых лыж Nordway', [
+    ['Яркая светло-синяя.', 'Ярко-синяя, кобальтового оттенка.'],
+    ['Голубая.', 'Ярко-синяя, кобальтового оттенка.'],
+  ]],
+  ['Тёплые варежки GRI (тип Полар)', [
+    ['Тёмно-синие, как брюки Джеди.', 'Тёмно-синие с оттенком индиго, как брюки Джеди.'],
+  ]],
+]);
+
+export function refreshWardrobeColors(wardrobe) {
+  for (const item of wardrobe) {
+    for (const [oldColor, newColor] of COLOR_NOTE_REVISIONS.get(item.name) ?? []) {
+      if (item.notes?.startsWith(oldColor)) {
+        item.notes = newColor + item.notes.slice(oldColor.length);
+        break;
+      }
+    }
+  }
+  return wardrobe;
+}

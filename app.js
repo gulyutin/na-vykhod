@@ -1,7 +1,7 @@
-import { CATEGORIES, includeCurrentConditions, recommendOutfit, summarizeForecast, weatherLabel } from './logic.mjs?v=8';
-import { PERSONAL_WARDROBE } from './wardrobe-defaults.mjs?v=6';
-import { selectHeroScene, weatherIconName } from './hero-scenes.mjs?v=8';
-import { selectMannequinPreset } from './mannequin-presets.mjs?v=8';
+import { CATEGORIES, includeCurrentConditions, recommendOutfit, summarizeForecast, weatherLabel } from './logic.mjs?v=9';
+import { PERSONAL_WARDROBE, refreshWardrobeColors } from './wardrobe-defaults.mjs?v=9';
+import { selectHeroScene, weatherIconName } from './hero-scenes.mjs?v=9';
+import { selectMannequinPreset } from './mannequin-presets.mjs?v=9';
 
 const ROUTE_PLACE = Object.freeze({
   name: 'Караульная гора · часовня',
@@ -18,6 +18,7 @@ const PERSONAL_SEED_KEY_V5 = 'na-vykhod:personal-seed:v5:2026-10-18';
 const PERSONAL_SEED_KEY_V6 = 'na-vykhod:personal-seed:v6:2026-10-18';
 const PERSONAL_SEED_KEY_V7 = 'na-vykhod:personal-seed:v7:2026-10-18';
 const PERSONAL_SEED_KEY_V8 = 'na-vykhod:personal-seed:v8:2026-10-18';
+const PERSONAL_SEED_KEY_V9 = 'na-vykhod:personal-seed:v9:2026-10-18';
 const PLACE_KEY = 'na-vykhod:place:v1';
 const ACTIVITY_KEY = 'na-vykhod:activity:v1';
 const SURFACE_KEY = 'na-vykhod:surface:v1';
@@ -112,7 +113,12 @@ function normalizeItem(raw) {
 const savedItems = storage.get(WARDROBE_KEY);
 function seedPersonalWardrobe(items) {
   const wardrobe = Array.isArray(items) ? items.map(normalizeItem).filter(Boolean) : [];
-  if (storage.get(PERSONAL_SEED_KEY_V8) === true) return wardrobe;
+  if (storage.get(PERSONAL_SEED_KEY_V9) === true) return wardrobe;
+  if (storage.get(PERSONAL_SEED_KEY_V8) === true) {
+    refreshWardrobeColors(wardrobe);
+    if (storage.set(WARDROBE_KEY, wardrobe)) storage.set(PERSONAL_SEED_KEY_V9, true);
+    return wardrobe;
+  }
   const hadV6 = storage.get(PERSONAL_SEED_KEY_V6) === true;
   const hadV4 = storage.get(PERSONAL_SEED_KEY_V4) === true;
   const defaults = PERSONAL_WARDROBE.map(normalizeItem).filter(Boolean);
@@ -162,8 +168,6 @@ function seedPersonalWardrobe(items) {
   }
   const colorHints = new Map([
     ['Джемпер half-zip GRI Винд', 'Тёмно-синий'],
-    ['Джемпер half-zip GRI Норд', 'Какао'],
-    ['Брюки мужские GRI Джеди', 'Тёмно-синие'],
     ['Шапка флисовая', 'Хаки'],
     ['ASICS GEL-FujiSetsu 3 G-TX', 'Чёрные с зелёными вставками и шнурками'],
     ['ASICS Gel-Sonoma 8', 'Чёрные с мятными вставками и шнурками'],
@@ -192,9 +196,9 @@ function seedPersonalWardrobe(items) {
     ['Джемпер half-zip GRI Винд', ['Тёмно-синий. Самый лёгкий из ваших джемперов; ветрозащиту модели стоит уточнить.',
       'Тёмно-синий. Тонкий флисовый джемпер, но ощутимо тёплый; самый лёгкий из ваших трёх джемперов по личной оценке. Ветрозащиту модели стоит уточнить.']],
     ['Джемпер half-zip GRI Норд', ['Какао. Средняя теплота по вашей оценке; флисовый средний слой.',
-      'Светлое какао, как кофе с молоком. Средняя теплота по вашей оценке; тонкий флисовый джемпер.']],
+      'Светлый бежево-серый меланж. Средняя теплота по вашей оценке; тонкий флисовый джемпер.']],
     ['Куртка для беговых лыж Nordway', ['Голубая. Самая тёплая из ваших курток; мембрана 3K/3K, в сильный дождь защита ограничена.',
-      'Яркая светло-синяя. Самая тёплая из ваших курток; мембрана 3K/3K, в сильный дождь защита ограничена.']],
+      'Ярко-синяя, кобальтового оттенка. Самая тёплая из ваших курток; мембрана 3K/3K, в сильный дождь защита ограничена.']],
     ['Джемпер флисовый Glissade', ['Светло-серый. Самый тёплый из ваших джемперов по личной оценке.',
       'Светло-серый, тонкий флис без пушистого ворса. Самый тёплый из ваших джемперов по личной оценке.']],
   ]);
@@ -202,6 +206,7 @@ function seedPersonalWardrobe(items) {
     const revision = revisedNotes.get(item.name);
     if (revision && item.notes === revision[0]) item.notes = revision[1];
   }
+  refreshWardrobeColors(wardrobe);
   if (storage.set(WARDROBE_KEY, wardrobe)) {
     storage.set(PERSONAL_SEED_KEY_V2, true);
     storage.set(PERSONAL_SEED_KEY_V3, true);
@@ -210,6 +215,7 @@ function seedPersonalWardrobe(items) {
     storage.set(PERSONAL_SEED_KEY_V6, true);
     storage.set(PERSONAL_SEED_KEY_V7, true);
     storage.set(PERSONAL_SEED_KEY_V8, true);
+    storage.set(PERSONAL_SEED_KEY_V9, true);
   }
   return wardrobe;
 }
@@ -248,11 +254,11 @@ function renderHeroWeather(metrics) {
   }
   if (hero && hero.dataset.scene !== asset) {
     const request = ++heroImageRequest;
-    const fallbackUrl = `assets/${fallback}.webp?v=8`;
+    const fallbackUrl = `assets/${fallback}.webp?v=9`;
     hero.dataset.scene = asset;
     hero.style.setProperty('--hero-scene', `url("${fallbackUrl}")`);
     if (asset !== fallback) {
-      const source = `assets/${asset}.webp?v=8`;
+      const source = `assets/${asset}.webp?v=9`;
       const image = new Image();
       image.onload = () => {
         if (request === heroImageRequest) hero.style.setProperty('--hero-scene', `url("${source}")`);
@@ -505,7 +511,7 @@ function renderHeroOutfit(result, metrics, outlookCode) {
     const imageName = entry.item && ITEM_IMAGES.get(entry.item.name);
     if (imageName) {
       const image = document.createElement('img');
-      image.src = `assets/items/${imageName}?v=7`;
+      image.src = `assets/items/${imageName}?v=9`;
       image.alt = '';
       image.loading = 'lazy';
       image.decoding = 'async';
@@ -556,7 +562,7 @@ function renderLook(result, metrics) {
   figure.dataset.preset = preset;
   const image = document.createElement('img');
   image.className = 'mannequin-photo';
-  image.src = `assets/${preset}.webp?v=8`;
+  image.src = `assets/${preset}.webp?v=9`;
   image.alt = 'Реалистичная иллюстрация одетого манекена по выбранной погоде';
   image.width = 800;
   image.height = 1100;
@@ -564,7 +570,7 @@ function renderLook(result, metrics) {
   image.decoding = 'async';
   image.onerror = () => {
     image.onerror = null;
-    image.src = 'assets/mannequin-wet-zero.webp?v=8';
+    image.src = 'assets/mannequin-wet-zero.webp?v=9';
   };
   figure.append(image);
   const roles = {
@@ -634,7 +640,7 @@ function renderWardrobe() {
       const media = document.createElement('div');
       media.className = 'wardrobe-item__media';
       const image = document.createElement('img');
-      image.src = `assets/items/${imageName}?v=5`;
+      image.src = `assets/items/${imageName}?v=9`;
       image.alt = `Иллюстрация: ${item.name}`;
       image.loading = 'lazy';
       image.decoding = 'async';

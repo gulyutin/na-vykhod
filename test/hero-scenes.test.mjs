@@ -6,7 +6,7 @@ import { selectHeroScene } from '../hero-scenes.mjs';
 
 const assetPath = filename => fileURLToPath(new URL(`../assets/${filename}.webp`, import.meta.url));
 const weatherCodes = { clear: 0, cloud: 3, rain: 61, snow: 71 };
-const thermalTemperatures = { hot: 40, mild: 15, cold: -10, frost: -40 };
+const thermalTemperatures = { extreme: 40, hot: 32, mild: 15, cold: -10, frost: -40 };
 
 test('every weather and temperature band has an image or a real fallback', () => {
   for (const [weather, code] of Object.entries(weatherCodes)) {
@@ -26,7 +26,8 @@ test('every weather and temperature band has an image or a real fallback', () =>
 test('the selected outing window controls scenes at both extreme bounds', () => {
   assert.equal(selectHeroScene({ codes: [0], tempMin: 24, tempMax: 40 }).asset, 'hero-clear-hot');
   assert.equal(selectHeroScene({ codes: [71], tempMin: -40, tempMax: -35 }).asset, 'hero-snow-frost');
-  assert.equal(selectHeroScene({ codes: [95], tempMin: 35, tempMax: 40 }).asset, 'hero-rain-hot');
+  assert.equal(selectHeroScene({ codes: [95], tempMin: 35, tempMax: 40 }).asset, 'hero-rain-extreme');
+  assert.equal(selectHeroScene({ codes: [61], tempMin: 30, tempMax: 33 }).asset, 'hero-rain-hot');
   assert.equal(selectHeroScene({ codes: [3], tempMin: -25, tempMax: -20 }).asset, 'hero-clear-frost');
 });
 

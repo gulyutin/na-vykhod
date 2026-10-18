@@ -1,0 +1,204 @@
+/* A photographic mannequin with garment notes outside the body. Load after styles.css. */
+.look-grid {
+  grid-template-columns: minmax(660px, 1.08fr) minmax(320px, .92fr);
+  min-width: 0;
+}
+
+.look-figure-wrap {
+  min-width: 0;
+  padding: 25px clamp(16px, 2vw, 30px) 20px;
+  background: #e9edf1;
+  overflow: hidden;
+}
+
+.look-figure.mannequin-board {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  width: min(100%, 700px);
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 660 / 940;
+  margin: 15px auto 12px;
+  overflow: hidden;
+  background: #e6ebef;
+}
+
+.look-figure.mannequin-board::before,
+.look-figure.mannequin-board::after {
+  display: none;
+}
+
+.mannequin-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+.mannequin-board > .mannequin-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.mannequin-callout {
+  position: absolute;
+  z-index: 2;
+  top: var(--callout-top, 50%);
+  width: min(30%, 210px);
+  min-width: 0;
+  padding: 9px 10px 10px;
+  transform: translateY(-50%);
+  color: #171a1e;
+  background: rgba(250, 251, 252, .95);
+  border: 1px solid #cdd4dc;
+  box-shadow: 0 2px 8px rgba(35, 48, 62, .04);
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  --leader-length: clamp(24px, 5vw, 74px);
+}
+
+.mannequin-callout[data-side="left"] { left: 2.5%; }
+.mannequin-callout[data-side="right"] { right: 2.5%; }
+
+.mannequin-callout::after {
+  position: absolute;
+  top: 50%;
+  width: var(--leader-length);
+  height: 1px;
+  background: #526273;
+  content: "";
+}
+
+.mannequin-callout::before {
+  position: absolute;
+  top: calc(50% - 3px);
+  width: 7px;
+  height: 7px;
+  background: #2b56cc;
+  border: 1px solid #f4f6f8;
+  border-radius: 50%;
+  content: "";
+}
+
+.mannequin-callout[data-side="left"]::after { left: 100%; }
+.mannequin-callout[data-side="left"]::before { left: calc(100% + var(--leader-length) - 3px); }
+.mannequin-callout[data-side="right"]::after { right: 100%; }
+.mannequin-callout[data-side="right"]::before { right: calc(100% + var(--leader-length) - 3px); }
+
+.mannequin-callout__role,
+.mannequin-callout__name { display: block; }
+
+.mannequin-callout__role {
+  margin-bottom: 4px;
+  color: #65717e;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.mannequin-callout__name {
+  color: #20252b;
+  font-size: clamp(12px, 1vw, 13px);
+  font-weight: 700;
+  line-height: 1.28;
+}
+
+/* Nine distinct vertical anchors remain legible even when every slot is used. */
+.mannequin-callout--head { --callout-top: 8%; }
+.mannequin-callout--neck { --callout-top: 18%; }
+.mannequin-callout--base-top { --callout-top: 23%; }
+.mannequin-callout--mid-top { --callout-top: 38%; }
+.mannequin-callout--shell { --callout-top: 48%; }
+.mannequin-callout--hands { --callout-top: 58%; }
+.mannequin-callout--base-bottom { --callout-top: 68%; }
+.mannequin-callout--bottom { --callout-top: 78%; }
+.mannequin-callout--shoes { --callout-top: 89%; }
+
+.look-figure-caption {
+  margin-top: 9px;
+  color: #737f8b;
+  line-height: 1.45;
+}
+
+.look-details {
+  min-width: 0;
+  padding: 42px clamp(25px, 4vw, 58px) 35px;
+  background: #fff;
+}
+
+@media (max-width: 1380px) {
+  .look-grid { grid-template-columns: minmax(0, 1fr); }
+  .look-figure-wrap { padding-inline: clamp(18px, 5vw, 42px); }
+  .look-figure.mannequin-board { width: min(100%, 700px); }
+  .look-details { border-top: 0; border-left: 1px solid #d5d9de; }
+}
+
+@media (max-width: 760px) {
+  .look-figure-wrap { padding: 18px 16px 20px; }
+
+  .look-figure.mannequin-board {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+    aspect-ratio: auto;
+    margin: 12px auto 10px;
+    overflow: visible;
+    background: transparent;
+  }
+
+  .mannequin-board > .mannequin-photo {
+    position: relative;
+    inset: auto;
+    grid-column: 1 / -1;
+    width: 100%;
+    height: min(135vw, 720px);
+    object-fit: contain;
+    background: #e6ebef;
+  }
+
+  .mannequin-callout,
+  .mannequin-callout[data-side="left"],
+  .mannequin-callout[data-side="right"] {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: auto;
+    min-height: 68px;
+    padding: 9px 11px;
+    transform: none;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .mannequin-callout::before,
+  .mannequin-callout::after { display: none; }
+
+  .mannequin-callout__name { font-size: 12px; }
+  .look-details { padding: 28px clamp(20px, 5vw, 34px); }
+}
+
+@media (max-width: 390px) {
+  .look-figure.mannequin-board { grid-template-columns: minmax(0, 1fr); }
+  .mannequin-board > .mannequin-photo { height: 129vw; }
+  .mannequin-callout { min-height: 56px; }
+}
+
+.mannequin-callout--missing,
+.mannequin-callout--missing[data-side="left"],
+.mannequin-callout--missing[data-side="right"] {
+  color: #734b22;
+  background: #fff7ea;
+  border-color: #d3aa70;
+}
+
+.mannequin-callout--missing .mannequin-callout__role { color: #a06729; }
+.mannequin-callout--missing .mannequin-callout__name { color: #734b22; }
+.mannequin-callout--missing::before,
+.mannequin-callout--missing::after { background: #bc8241; }

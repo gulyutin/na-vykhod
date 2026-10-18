@@ -24,6 +24,7 @@ export function heroThermal(metrics) {
   // Winter scene wins if the outing crosses bands; otherwise show expected heat.
   if (metrics.tempMin <= -25) return 'frost';
   if (metrics.tempMin <= 0) return 'cold';
+  if (metrics.tempMax >= 35) return 'extreme';
   if (metrics.tempMax >= 30) return 'hot';
   return 'mild';
 }
@@ -31,6 +32,7 @@ export function heroThermal(metrics) {
 export function heroAsset(weather, thermal) {
   if (thermal === 'mild') return `hero-${weather}`;
   const available = {
+    extreme: { clear: 'hero-clear-hot', cloud: 'hero-cloud-hot', rain: 'hero-rain-extreme' },
     hot: { clear: 'hero-clear-hot', cloud: 'hero-cloud-hot', rain: 'hero-rain-hot' },
     cold: { clear: 'hero-clear-cold', cloud: 'hero-clear-cold', rain: 'hero-rain-cold', snow: 'hero-snow-cold' },
     frost: { clear: 'hero-clear-frost', cloud: 'hero-clear-frost', rain: 'hero-rain-cold', snow: 'hero-snow-frost' },

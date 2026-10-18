@@ -1,6 +1,7 @@
-import { CATEGORIES, includeCurrentConditions, recommendOutfit, summarizeForecast, weatherLabel } from './logic.mjs?v=6';
+import { CATEGORIES, includeCurrentConditions, recommendOutfit, summarizeForecast, weatherLabel } from './logic.mjs?v=8';
 import { PERSONAL_WARDROBE } from './wardrobe-defaults.mjs?v=6';
-import { selectHeroScene, weatherIconName } from './hero-scenes.mjs?v=7';
+import { selectHeroScene, weatherIconName } from './hero-scenes.mjs?v=8';
+import { selectMannequinPreset } from './mannequin-presets.mjs?v=8';
 
 const ROUTE_PLACE = Object.freeze({
   name: 'Караульная гора · часовня',
@@ -247,11 +248,11 @@ function renderHeroWeather(metrics) {
   }
   if (hero && hero.dataset.scene !== asset) {
     const request = ++heroImageRequest;
-    const fallbackUrl = `assets/${fallback}.webp?v=7`;
+    const fallbackUrl = `assets/${fallback}.webp?v=8`;
     hero.dataset.scene = asset;
     hero.style.setProperty('--hero-scene', `url("${fallbackUrl}")`);
     if (asset !== fallback) {
-      const source = `assets/${asset}.webp?v=7`;
+      const source = `assets/${asset}.webp?v=8`;
       const image = new Image();
       image.onload = () => {
         if (request === heroImageRequest) hero.style.setProperty('--hero-scene', `url("${source}")`);
@@ -548,62 +549,53 @@ function addLookItems(listId, entries, emptyText) {
   }
 }
 
-function makeLookPiece(entry, slot, caption) {
-  const piece = document.createElement('div');
-  piece.className = `look-piece look-piece--${slot}`;
-  piece.title = entry.item.name;
-  const media = document.createElement('div');
-  media.className = 'look-piece__media';
-  const imageName = ITEM_IMAGES.get(entry.item.name);
-  if (imageName) {
-    const image = document.createElement('img');
-    image.src = `assets/items/${imageName}?v=5`;
-    image.alt = '';
-    image.decoding = 'async';
-    media.append(image);
-  } else {
-    media.classList.add('look-piece__media--unknown');
-    media.textContent = entry.item.name;
-  }
-  const label = document.createElement('span');
-  label.className = 'look-piece__label';
-  label.textContent = caption;
-  piece.append(media, label);
-  return piece;
-}
-
 function renderLook(result, metrics) {
-  const worn = result.wear.filter(entry => entry.item);
-  const find = category => worn.find(entry => entry.category === category);
-  const head = find('head');
-  const top = find('shell') || find('mid-top') || find('base-top');
-  const bottom = find('bottom') || find('base-bottom');
-  const shoes = find('shoes');
-  const main = [head, top, bottom, shoes].filter(Boolean);
   const figure = $('lookFigure');
   figure.replaceChildren();
-  if (head) figure.append(makeLookPiece(head, 'head', 'ГОЛОВА'));
-  if (top) figure.append(makeLookPiece(top, 'top', 'ВЕРХНИЙ СЛОЙ'));
-  if (bottom) figure.append(makeLookPiece(bottom, 'bottom', 'НИЗ'));
-  if (shoes) figure.append(makeLookPiece(shoes, 'shoes', 'ОБУВЬ'));
-  const otherLabels = {
-    'base-top': 'БАЗОВЫЙ СЛОЙ',
-    'mid-top': 'СРЕДНИЙ СЛОЙ',
-    'base-bottom': 'НИЖНИЙ СЛОЙ',
-    neck: 'ШЕЯ',
-    hands: 'РУКИ',
+  const preset = selectMannequinPreset(result, metrics, state.activity);
+  figure.dataset.preset = preset;
+  const image = document.createElement('img');
+  image.className = 'mannequin-photo';
+  image.src = `assets/${preset}.webp?v=8`;
+  image.alt = 'Реалистичная иллюстрация одетого манекена по выбранной погоде';
+  image.width = 800;
+  image.height = 1100;
+  image.loading = 'lazy';
+  image.decoding = 'async';
+  image.onerror = () => {
+    image.onerror = null;
+    image.src = 'assets/mannequin-wet-zero.webp?v=8';
   };
-  worn.filter(entry => !main.includes(entry)).forEach((entry, index) => {
-    figure.append(makeLookPiece(entry, `mini-${index + 1}`, otherLabels[entry.category] || 'ДЕТАЛЬ'));
-  });
-  figure.setAttribute('aria-label', `Комплект: ${worn.map(entry => entry.item.name).join(', ')}`);
+  figure.append(image);
+  const roles = {
+    head: ['Голова', 'left'], neck: ['Шея', 'right'],
+    'base-top': ['Первый слой', 'left'], 'mid-top': ['Средний слой', 'right'],
+    shell: ['Куртка', 'left'], hands: ['Руки', 'right'],
+    'base-bottom': ['Термобельё', 'left'], bottom: ['Низ', 'right'],
+    shoes: ['Обувь', 'right'],
+  };
+  for (const entry of result.wear) {
+    const [role, side] = roles[entry.category] ?? ['Вещь', 'right'];
+    const callout = document.createElement('div');
+    callout.className = `mannequin-callout mannequin-callout--${entry.category}`;
+    callout.dataset.side = side;
+    if (!entry.item) callout.classList.add('mannequin-callout--missing');
+    const roleLabel = document.createElement('span');
+    roleLabel.className = 'mannequin-callout__role';
+    roleLabel.textContent = entry.item ? role : `${role} · нужно добавить`;
+    const name = document.createElement('strong');
+    name.className = 'mannequin-callout__name';
+    name.textContent = entry.item?.name ?? entry.label;
+    callout.append(roleLabel, name);
+    figure.append(callout);
+  }
   $('lookActivity').textContent = state.activity === 'hike' ? 'ПОДЪЁМ С РЮКЗАКОМ' : 'БЕГ';
   $('lookWeather').textContent = `${temp(metrics.tempMin)}…${temp(metrics.tempMax)} · ${state.place.name}`;
   addLookItems('lookWornList', result.wear, 'По этому прогнозу комплект не собран.');
   addLookItems('lookPackList', result.carry, 'Дополнительные вещи не нужны.');
   $('lookCaveat').textContent = result.missing.length
     ? `Нужно уточнить или добавить: ${result.missing.join('; ')}.`
-    : 'Каталожная сборка показывает выбранные вещи; посадка одежды и сочетание слоёв могут отличаться.';
+    : 'Манекен иллюстрирует комплект по погоде; точные выбранные вещи указаны в выносках. Отдельные детали изображения могут отличаться.';
   $('lookPanel').hidden = false;
   $('lookEmpty').hidden = true;
 }

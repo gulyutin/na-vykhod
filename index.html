@@ -7,8 +7,9 @@
     <meta name="description" content="Подберите одежду для пробежки или похода на Караульную гору по погоде и вещам из своего гардероба.">
     <title>На выход — как одеться сегодня</title>
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-    <link rel="stylesheet" href="styles.css?v=7">
-    <script type="module" src="./app.js?v=7"></script>
+    <link rel="stylesheet" href="styles.css?v=8">
+    <link rel="stylesheet" href="mannequin-look.css?v=8">
+    <script type="module" src="./app.js?v=8"></script>
   </head>
   <body>
     <a class="skip-link" href="#planner">Перейти к подбору одежды</a>
@@ -279,13 +280,13 @@
         <div class="shell">
           <div class="section-heading look-heading">
             <div><div class="section-kicker">03 / ОБРАЗ ЦЕЛИКОМ</div><h2 id="lookTitle">Как это выглядит вместе</h2></div>
-            <p>Иллюстрации выбранных вещей складываются в один комплект и меняются вместе с прогнозом.</p>
+            <p>Одетый манекен показывает выбранные вещи, а выноски поясняют каждый слой.</p>
           </div>
           <div id="lookPanel" class="look-grid" hidden>
             <div class="look-figure-wrap">
               <div class="look-figure-topline"><span>ТВОЙ КОМПЛЕКТ</span><span id="lookActivity">ПОХОД</span></div>
-              <div id="lookFigure" class="look-figure" role="img" aria-label="Комплект из выбранных вещей"></div>
-              <div class="look-figure-caption">КАТАЛОЖНАЯ СБОРКА · ИЛЛЮСТРАЦИИ ТВОИХ ВЕЩЕЙ</div>
+              <div id="lookFigure" class="look-figure mannequin-board"></div>
+              <div class="look-figure-caption">РЕАЛИСТИЧНЫЙ МАНЕКЕН · ТОЧНЫЕ ВЕЩИ В ВЫНОСКАХ</div>
             </div>
             <div class="look-details">
               <p id="lookWeather" class="look-weather"></p>

@@ -107,6 +107,7 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours, surf
   const extremeCold = t <= -30 || metrics.apparentMin <= -35;
   const extremeHeat = metrics.tempMax >= 35;
   const hotRain = wet && t >= (hike ? 25 : 22);
+  const lightRainShell = rainyCode && hotRain && !extremeHeat;
   const snow = snowyCode || (wet && t <= 1 && !rainyCode);
   const wear = [];
   const carry = [];
@@ -164,7 +165,8 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours, surf
   }
 
   // A dense shell can trap heat during a hot outing, even in rain or wind.
-  const shellNeeded = (wet && !hotRain) || (wind && t < (hike ? 22 : 20)) ||
+  const shellNeeded = (wet && !hotRain) || lightRainShell ||
+    (wind && t < (hike ? 22 : 20)) ||
     feelsCold || t <= (hike ? 3 : 1);
   // Near zero, a shell supplies the outer warmth; start with the lightest
   // garment the owner permits directly against the skin.
@@ -183,13 +185,15 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours, surf
   const wearMid = (hike ? t <= 3 : t <= 0) && !jumperIsFirstLayer;
   if (wearMid) add(wear, 'mid-top', 'Утепляющий слой', t <= -12 ? 3 : t <= -4 ? 2 : 1);
   if (shellNeeded) {
-    const shellWarmth = t <= -14 ? 4 : t <= -5 ? 3 :
+    const shellWarmth = lightRainShell ? 1 : t <= -14 ? 4 : t <= -5 ? 3 :
       t <= 1 || (hike && t <= 3) || (waterproofNeeded && t <= 5) ? 2 : 1;
     const shellLabel = waterproofNeeded
       ? (snow ? 'Защита от мокрого снега' : 'Защита от дождя')
       : snow ? 'Защита от снега и ветра' : 'Защита от холода и ветра';
-    add(wear, 'shell', shellLabel, shellWarmth,
-      waterproofNeeded ? { waterproof: true } : { windproof: true });
+    const shell = add(wear, 'shell', shellLabel, shellWarmth,
+      waterproofNeeded && !lightRainShell ? { waterproof: true } : { windproof: true });
+    if (lightRainShell && shell && !shell.waterproof)
+      missing.push(`У «${shell.name}» не подтверждена защита от сильного дождя`);
   }
   let headwear = null;
   if (t <= 5 || (wet && t <= 12))
@@ -239,6 +243,8 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours, surf
     advice.unshift('Экстремальная жара: перенесите бег или подъём на более прохладное время; одежда не устраняет риск перегрева.');
   if (hotRain)
     advice.push('В тёплый дождь плотная мембрана может перегреть: выбирайте лёгкую защиту и следите за грозой.');
+  if (lightRainShell)
+    advice.push('В жару расстегните или снимите лёгкую ветровку, если становится душно.');
   if (metrics.gustMax >= 60 || metrics.precipitationTotal >= 5) advice.push('Сильный ветер или осадки: проверьте условия перед выходом и возможность развернуться.');
   if (wardrobe.length === 0) advice.unshift('Добавьте свои вещи в гардероб, чтобы получить комплект по названиям.');
 

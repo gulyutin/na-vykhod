@@ -323,3 +323,13 @@ test('plus forty rain and wind never suggest a dense shell or spare fleece', () 
   assert.ok(result.advice.some(x => x.includes('Экстремальная жара')));
   assert.ok(result.advice.some(x => x.includes('плотная мембрана')));
 });
+
+test('rain in moderate heat uses the thin orange windbreaker and states its limit', () => {
+  const wardrobe = PERSONAL_WARDROBE.map((entry, index) => ({ ...entry, id: String(index) }));
+  const metrics = { tempMin: 30, tempMax: 33, apparentMin: 31,
+    probabilityMax: 90, precipitationTotal: 1, windMax: 14, gustMax: 22, codes: [61] };
+  const result = recommendOutfit(metrics, wardrobe, 'run', 1, 'dry');
+  assert.equal(result.wear.find(x => x.category === 'shell')?.item?.name, 'Оранжевая ветровка Uniqlo');
+  assert.ok(result.missing.some(x => x.includes('не подтверждена защита от сильного дождя')));
+  assert.ok(result.advice.some(x => x.includes('расстегните или снимите')));
+});

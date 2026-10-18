@@ -1,5 +1,5 @@
-import { CATEGORIES, recommendOutfit, summarizeForecast, weatherLabel } from './logic.mjs?v=4';
-import { PERSONAL_WARDROBE } from './wardrobe-defaults.mjs?v=4';
+import { CATEGORIES, includeCurrentConditions, recommendOutfit, summarizeForecast, weatherLabel } from './logic.mjs?v=5';
+import { PERSONAL_WARDROBE } from './wardrobe-defaults.mjs?v=5';
 
 const ROUTE_PLACE = Object.freeze({
   name: 'Караульная гора · часовня',
@@ -14,6 +14,7 @@ const PERSONAL_SEED_KEY_V3 = 'na-vykhod:personal-seed:v3:2026-10-18';
 const PERSONAL_SEED_KEY_V4 = 'na-vykhod:personal-seed:v4:2026-10-18';
 const PERSONAL_SEED_KEY_V5 = 'na-vykhod:personal-seed:v5:2026-10-18';
 const PERSONAL_SEED_KEY_V6 = 'na-vykhod:personal-seed:v6:2026-10-18';
+const PERSONAL_SEED_KEY_V7 = 'na-vykhod:personal-seed:v7:2026-10-18';
 const PLACE_KEY = 'na-vykhod:place:v1';
 const ACTIVITY_KEY = 'na-vykhod:activity:v1';
 const SURFACE_KEY = 'na-vykhod:surface:v1';
@@ -108,7 +109,8 @@ function normalizeItem(raw) {
 const savedItems = storage.get(WARDROBE_KEY);
 function seedPersonalWardrobe(items) {
   const wardrobe = Array.isArray(items) ? items.map(normalizeItem).filter(Boolean) : [];
-  if (storage.get(PERSONAL_SEED_KEY_V6) === true) return wardrobe;
+  if (storage.get(PERSONAL_SEED_KEY_V7) === true) return wardrobe;
+  const hadV6 = storage.get(PERSONAL_SEED_KEY_V6) === true;
   const hadV4 = storage.get(PERSONAL_SEED_KEY_V4) === true;
   const defaults = PERSONAL_WARDROBE.map(normalizeItem).filter(Boolean);
   const isSameItem = (a, b) => a.category === b.category &&
@@ -177,9 +179,23 @@ function seedPersonalWardrobe(items) {
   if (lightBuff && !wardrobe.some(item => isSameItem(item, lightBuff))) wardrobe.push(lightBuff);
   const nordway = wardrobe.find(item => item.name === 'Куртка для беговых лыж Nordway');
   if (nordway?.warmth === 3) nordway.warmth = 4;
+  if (!hadV6) {
+    for (const item of wardrobe) {
+      if (item.category === 'mid-top' &&
+        ['Джемпер half-zip GRI Винд', 'Джемпер half-zip GRI Норд'].includes(item.name)) item.firstLayer = true;
+    }
+  }
+  const revisedNotes = new Map([
+    ['Джемпер half-zip GRI Норд', ['Какао. Средняя теплота по вашей оценке; флисовый средний слой.',
+      'Светлое какао, как кофе с молоком. Средняя теплота по вашей оценке; тонкий флисовый джемпер.']],
+    ['Куртка для беговых лыж Nordway', ['Голубая. Самая тёплая из ваших курток; мембрана 3K/3K, в сильный дождь защита ограничена.',
+      'Яркая светло-синяя. Самая тёплая из ваших курток; мембрана 3K/3K, в сильный дождь защита ограничена.']],
+    ['Джемпер флисовый Glissade', ['Светло-серый. Самый тёплый из ваших джемперов по личной оценке.',
+      'Светло-серый, тонкий флис без пушистого ворса. Самый тёплый из ваших джемперов по личной оценке.']],
+  ]);
   for (const item of wardrobe) {
-    if (item.category === 'mid-top' &&
-      ['Джемпер half-zip GRI Винд', 'Джемпер half-zip GRI Норд'].includes(item.name)) item.firstLayer = true;
+    const revision = revisedNotes.get(item.name);
+    if (revision && item.notes === revision[0]) item.notes = revision[1];
   }
   if (storage.set(WARDROBE_KEY, wardrobe)) {
     storage.set(PERSONAL_SEED_KEY_V2, true);
@@ -187,6 +203,7 @@ function seedPersonalWardrobe(items) {
     storage.set(PERSONAL_SEED_KEY_V4, true);
     storage.set(PERSONAL_SEED_KEY_V5, true);
     storage.set(PERSONAL_SEED_KEY_V6, true);
+    storage.set(PERSONAL_SEED_KEY_V7, true);
   }
   return wardrobe;
 }
@@ -233,7 +250,7 @@ function renderHeroWeather(codes) {
   const hero = document.querySelector('.hero-art');
   if (hero) {
     hero.dataset.weather = scene;
-    hero.style.setProperty('--hero-scene', `url("assets/hero-${scene}.webp")`);
+    hero.style.setProperty('--hero-scene', `url("assets/hero-${scene}.webp?v=5")`);
   }
   return codes.find(code => {
     const condition = weatherIconName(code);
@@ -254,13 +271,21 @@ function currentHourIndex(times) {
   for (let i = 0; i < times.length && times[i] <= now; i++) index = i;
   return index;
 }
+function syncPlaceShortcuts(place) {
+  const onRoute = Boolean(place.route);
+  const atCurrentLocation = place.name === 'Моё местоположение';
+  $('useKaraul').classList.toggle('chip-primary', onRoute);
+  $('useKaraul').setAttribute('aria-pressed', String(onRoute));
+  $('useLocation').classList.toggle('chip-primary', atCurrentLocation);
+  $('useLocation').setAttribute('aria-pressed', String(atCurrentLocation));
+}
 function setPlace(place) {
   state.place = place;
   state.selectedStart = null;
   storage.set(PLACE_KEY, place);
   $('placeLabel').textContent = place.name;
   $('weatherScope').textContent = place.route ? 'ПРОГНОЗ ПО МАРШРУТУ' : 'ПРОГНОЗ ДЛЯ МЕСТА';
-  $('useKaraul').classList.toggle('chip-primary', Boolean(place.route));
+  syncPlaceShortcuts(place);
   $('placeSuggestions').replaceChildren();
   $('placeQuery').value = '';
   fetchWeather();
@@ -373,9 +398,13 @@ function renderForecast() {
   const current = state.forecast.current;
   const duration = Number($('durationSelect').value) || 2;
   const firstIndex = currentHourIndex(state.forecast.hourly.time);
+  const leavingNow = state.selectedStart === firstIndex;
   const windowHours = duration + (state.selectedStart === firstIndex ? 1 : 0);
   let metrics;
-  try { metrics = summarizeForecast(state.forecast.hourly, state.selectedStart, windowHours); }
+  try {
+    metrics = summarizeForecast(state.forecast.hourly, state.selectedStart, windowHours);
+    if (leavingNow) metrics = includeCurrentConditions(metrics, current);
+  }
   catch (error) {
     setMessage('weatherStatus', error.message, 'error');
     $('weatherPanel').hidden = true;
@@ -384,10 +413,8 @@ function renderForecast() {
   }
   $('weatherPanel').hidden = false;
   const hourly = state.forecast.hourly;
-  const leavingNow = state.selectedStart === firstIndex;
   const atStart = field => leavingNow ? current[field] : hourly[field][state.selectedStart];
-  const codes = metrics.codes;
-  const outlookCode = renderHeroWeather(leavingNow ? [current.weather_code, ...codes] : codes);
+  const outlookCode = renderHeroWeather(metrics.codes);
   $('weatherTemp').textContent = temp(atStart('temperature_2m'));
   $('weatherDescription').textContent = weatherLabel(outlookCode);
   $('weatherIconUse').setAttribute('href', `#wx-${weatherIconName(outlookCode)}`);
@@ -483,7 +510,7 @@ function makeLookPiece(entry, slot, caption) {
   const imageName = ITEM_IMAGES.get(entry.item.name);
   if (imageName) {
     const image = document.createElement('img');
-    image.src = `assets/items/${imageName}`;
+    image.src = `assets/items/${imageName}?v=5`;
     image.alt = '';
     image.decoding = 'async';
     media.append(image);
@@ -568,7 +595,7 @@ function renderWardrobe() {
       const media = document.createElement('div');
       media.className = 'wardrobe-item__media';
       const image = document.createElement('img');
-      image.src = `assets/items/${imageName}`;
+      image.src = `assets/items/${imageName}?v=5`;
       image.alt = `Иллюстрация: ${item.name}`;
       image.loading = 'lazy';
       image.decoding = 'async';
@@ -766,7 +793,7 @@ function bindControls() {
   });
   $('placeLabel').textContent = state.place.name;
   $('weatherScope').textContent = state.place.route ? 'ПРОГНОЗ ПО МАРШРУТУ' : 'ПРОГНОЗ ДЛЯ МЕСТА';
-  $('useKaraul').classList.toggle('chip-primary', Boolean(state.place.route));
+  syncPlaceShortcuts(state.place);
   $('useKaraul').addEventListener('click', () => setPlace({ ...ROUTE_PLACE }));
   $('useLocation').addEventListener('click', () => {
     if (!navigator.geolocation) { setMessage('weatherStatus', 'Геолокация недоступна в этом браузере.', 'error'); return; }

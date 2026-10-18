@@ -6,8 +6,9 @@
     <meta name="theme-color" content="#ffffff">
     <meta name="description" content="Подберите одежду для пробежки или похода на Караульную гору по погоде и вещам из своего гардероба.">
     <title>На выход — как одеться сегодня</title>
-    <link rel="stylesheet" href="styles.css?v=4">
-    <script type="module" src="./app.js?v=4"></script>
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="stylesheet" href="styles.css?v=5">
+    <script type="module" src="./app.js?v=5"></script>
   </head>
   <body>
     <a class="skip-link" href="#planner">Перейти к подбору одежды</a>
@@ -21,7 +22,7 @@
       <symbol id="wx-storm" viewBox="0 0 48 48"><path d="M11 29h25a8 8 0 0 0 0-16h-2a11 11 0 0 0-21-2 9 9 0 0 0-2 18Zm15 3-6 8h6l-2 6 10-11h-7l3-3"/></symbol>
     </svg>
 
-    <header class="site-header">
+    <header class="site-header" id="top">
       <div class="shell header-inner">
         <a class="brand" href="#top" aria-label="На выход, к началу страницы">
           <span class="brand-mark" aria-hidden="true">
@@ -41,7 +42,7 @@
       </div>
     </header>
 
-    <main id="top">
+    <main>
       <section class="hero" aria-labelledby="pageTitle">
         <div class="shell hero-grid">
           <div class="hero-copy">
@@ -181,6 +182,7 @@
               <p id="recommendationStatus" class="recommendation-status" role="status" aria-live="polite">Добавьте вещи в гардероб — и здесь появится персональный совет.</p>
               <div id="recommendationPanel" hidden>
                 <p id="summaryText" class="summary-text"></p>
+                <a class="look-jump" href="#look">Посмотреть образ целиком <span aria-hidden="true">↗</span></a>
                 <div class="recommendation-lists">
                   <section class="recommendation-group"><h3><span aria-hidden="true">↗</span> Надеть</h3><ul id="wearList" class="recommendation-list"></ul></section>
                   <section class="recommendation-group"><h3><span aria-hidden="true">▣</span> В рюкзак</h3><ul id="packList" class="recommendation-list"></ul></section>
@@ -197,7 +199,7 @@
         <div class="shell">
           <div class="section-heading wardrobe-heading">
             <div><div class="section-kicker">02 / СОБИРАЕМ ГАРДЕРОБ</div><h2 id="wardrobeTitle">Гардероб <span id="wardrobeCount" class="count-badge">0</span></h2></div>
-            <p>Твои вещи и их иллюстрации. Цвет и детали могут отличаться от твоих экземпляров.</p>
+            <p>Твои вещи и их иллюстрации. Цвет и детали могут отличаться от твоих экземпляров.<br><a class="wardrobe-add-link" href="#addItemTitle">Добавить вещь <span aria-hidden="true">↗</span></a></p>
           </div>
 
           <div class="wardrobe-grid">

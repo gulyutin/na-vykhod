@@ -709,3 +709,26 @@ select:focus, .form-field input:focus, .form-field textarea:focus { border-color
   .look-piece--mini-1, .look-piece--mini-3, .look-piece--mini-5 { left: 1%; }
   .look-piece--mini-2, .look-piece--mini-4, .look-piece--mini-6 { right: 1%; }
 }
+
+/* Keep the suggested outfit and its visual together in the user journey. */
+.recommendation-card .summary-text { margin-bottom: 14px; }
+.look-jump { display: inline-flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 44px; margin-bottom: 23px; padding: 10px 14px; border: 1px solid #9eadd0; color: #2144a6; font-size: 13px; font-weight: 700; line-height: 1.3; text-decoration: none; }
+.look-jump:hover { background: #e8edff; }
+.look-jump span { font-size: 19px; line-height: 1; }
+.wardrobe-add-link { display: inline-flex; align-items: center; gap: 9px; min-height: 38px; margin-top: 6px; color: #2144a6; font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+.wardrobe-add-link:hover { color: #123387; }
+.recommendation-list li span { font-size: 12px; }
+.weather-updated { font-size: 11px; }
+.wardrobe-item h4, .wardrobe-item strong { font-size: 14px; }
+.wardrobe-item p, .wardrobe-item small { font-size: 12px; line-height: 1.45; }
+.wardrobe-item-actions button { min-height: 32px; font-size: 12px; }
+
+@media (max-width: 680px) {
+  .setup-card .chip { min-height: 42px; }
+  .setup-card select { min-height: 44px; }
+  .place-search button { min-width: 68px; }
+}
+@media (max-width: 510px) {
+  .look-jump { display: flex; }
+  .wardrobe-add-link { min-height: 44px; }
+}

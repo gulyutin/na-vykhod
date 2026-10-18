@@ -4,7 +4,7 @@ export const PERSONAL_WARDROBE = [
   {
     name: 'Джемпер half-zip GRI Норд', category: 'mid-top', warmth: 2, firstLayer: true,
     activities: ['run', 'hike'],
-    notes: 'Какао. Средняя теплота по вашей оценке; флисовый средний слой.',
+    notes: 'Светлое какао, как кофе с молоком. Средняя теплота по вашей оценке; тонкий флисовый джемпер.',
   },
   {
     name: 'Джемпер half-zip GRI Винд', category: 'mid-top', warmth: 1, firstLayer: true,
@@ -65,12 +65,12 @@ export const PERSONAL_WARDROBE = [
     name: 'Куртка для беговых лыж Nordway', category: 'shell', warmth: 4,
     windproof: true, waterproof: true,
     activities: ['run', 'hike'],
-    notes: 'Голубая. Самая тёплая из ваших курток; мембрана 3K/3K, в сильный дождь защита ограничена.',
+    notes: 'Яркая светло-синяя. Самая тёплая из ваших курток; мембрана 3K/3K, в сильный дождь защита ограничена.',
   },
   {
     name: 'Джемпер флисовый Glissade', category: 'mid-top', warmth: 3,
     activities: ['run', 'hike'],
-    notes: 'Светло-серый. Самый тёплый из ваших джемперов по личной оценке.',
+    notes: 'Светло-серый, тонкий флис без пушистого ворса. Самый тёплый из ваших джемперов по личной оценке.',
   },
   {
     name: 'Шорты Athlex', category: 'bottom', warmth: 1,

@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#153e35">
+    <meta name="description" content="Подберите одежду для пробежки или похода на Караульную гору по погоде и вещам из своего гардероба.">
+    <title>На выход — как одеться сегодня</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#planner">Перейти к подбору одежды</a>
+
+    <header class="site-header">
+      <div class="shell header-inner">
+        <a class="brand" href="#top" aria-label="На выход, к началу страницы">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 40 40" fill="none">
+              <path d="M4 29.5 14.2 14l5.1 7.7 5.5-10.2L36 29.5" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M8 34h24M17 28.5l3.4 5.5" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/>
+              <circle cx="31.4" cy="9" r="3" fill="currentColor"/>
+            </svg>
+          </span>
+          <span class="brand-name">на выход<span class="brand-dot">.</span></span>
+        </a>
+        <nav class="header-nav" aria-label="Разделы">
+          <a href="#planner">Подобрать одежду</a>
+          <a href="#wardrobe">Мой гардероб</a>
+        </nav>
+        <span class="header-tag">Погода · движение · гардероб</span>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="pageTitle">
+        <div class="shell hero-grid">
+          <div class="hero-copy">
+            <div class="eyebrow"><span class="eyebrow-line"></span> МАРШРУТ НАЧИНАЕТСЯ ДОМА</div>
+            <h1 id="pageTitle">На улице своя погода.<br><em>У тебя — свой комплект.</em></h1>
+            <p>Выбери пробежку или подъём на Караульную гору. Мы сверим прогноз с твоими вещами и подскажем, что надеть и взять с собой.</p>
+            <p class="route-note"><span aria-hidden="true">⌁</span> От ГАИ на Брянской до часовни · около 2,9 км туда-обратно по вашему треку</p>
+            <a class="hero-link" href="#planner">Собрать комплект <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="hero-art-label">КАРАУЛЬНАЯ ГОРА<br><span>Красноярск · 56.02° N</span></div>
+            <svg viewBox="0 0 540 332" preserveAspectRatio="xMidYMid slice" role="presentation">
+              <defs>
+                <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d9e4d6"/><stop offset="1" stop-color="#a8c1ac"/></linearGradient>
+                <linearGradient id="back" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#789d82"/><stop offset="1" stop-color="#4c785f"/></linearGradient>
+              </defs>
+              <rect width="540" height="332" fill="url(#sky)"/>
+              <circle cx="388" cy="86" r="46" fill="#e9c56f"/>
+              <path d="M0 220 70 179l58 35 96-94 64 59 86-104 70 93 96-57v221H0Z" fill="url(#back)"/>
+              <path d="m0 251 89-41 72 20 126-93 75 72 75-45 103 59v109H0Z" fill="#315d4b"/>
+              <path d="m0 306 83-42 73 23 114-85 86 65 76-31 108 45v51H0Z" fill="#173f36"/>
+              <path d="M239 332c17-28 28-55 41-72 10-13 32-25 49-29" stroke="#dfb97d" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 10"/>
+              <path d="M347 157v74m-12 0h24m-21-50h18" stroke="#f1e6cb" stroke-width="3" stroke-linecap="round"/>
+              <path d="M337 157h21l-10.5-19Z" fill="#f1e6cb"/>
+              <g stroke="#cee0cc" stroke-width="1" opacity=".35"><path d="M8 216c47-5 64-21 97-32"/><path d="M36 255c61-13 111-39 143-63"/><path d="M391 185c33-8 57-21 91-44"/><path d="M376 264c40-1 99-23 155-42"/></g>
+            </svg>
+            <div class="art-coordinate">56.02368° N &nbsp; 92.85957° E</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="planner-section shell" id="planner" aria-labelledby="plannerTitle">
+        <div class="section-heading">
+          <div>
+            <div class="section-kicker">01 / ПЛАНИРУЕМ ВЫХОД</div>
+            <h2 id="plannerTitle">Куда идём?</h2>
+          </div>
+          <p>Пара деталей помогает точнее оценить погоду и нагрузку.</p>
+        </div>
+
+        <div class="planner-grid">
+          <section class="card setup-card" aria-label="Параметры выхода">
+            <div class="field-group activity-field">
+              <div class="field-heading"><span class="field-number">01</span><h3>Чем займёмся</h3></div>
+              <div class="activity-switch" role="group" aria-label="Тип активности">
+                <button class="activity-choice" type="button" data-activity="run" aria-pressed="false">
+                  <span class="activity-icon" aria-hidden="true">
+                    <svg viewBox="0 0 28 28" fill="none"><circle cx="19.5" cy="4.5" r="2.4" fill="currentColor"/><path d="m13 11 4-2 3 3 4 1.5M17 9l-2 6-5 2-4 5m9-7 4 5 5 2M10 8l4-1 3 2" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </span>
+                  <span><strong>Пробежка</strong><small>Активно и налегке</small></span>
+                </button>
+                <button class="activity-choice is-selected" type="button" data-activity="hike" aria-pressed="true">
+                  <span class="activity-icon" aria-hidden="true">
+                    <svg viewBox="0 0 28 28" fill="none"><circle cx="14.5" cy="4.5" r="2.5" fill="currentColor"/><path d="m13 8-3 7 3 3-2 6m3-9 5 2 2 7m-7-15 4 3-1 5m-8-7H5v7h5m13-6-1 10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </span>
+                  <span><strong>Поход</strong><small>На гору с рюкзаком</small></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="field-group location-field">
+              <div class="field-heading"><span class="field-number">02</span><h3>Где смотреть погоду</h3></div>
+              <p class="field-help">Сейчас выбрано: <strong id="placeLabel">Караульная гора, Красноярск</strong></p>
+              <div class="place-shortcuts">
+                <button id="useKaraul" class="chip chip-primary" type="button">⌁ Караульная гора</button>
+                <button id="useLocation" class="chip" type="button"><span aria-hidden="true">◎</span> Моё местоположение</button>
+              </div>
+              <form id="placeSearch" class="place-search" role="search" autocomplete="off">
+                <label for="placeQuery" class="sr-only">Найти другое место</label>
+                <span class="search-icon" aria-hidden="true">⌕</span>
+                <input id="placeQuery" name="placeQuery" type="search" placeholder="Или найдите другой город, район…" autocomplete="off">
+                <button type="submit">Найти</button>
+              </form>
+              <div id="placeSuggestions" class="place-suggestions" aria-live="polite"></div>
+              <p class="tiny-note">При выборе геолокации координаты отправляются в Open-Meteo для прогноза. Гардероб остаётся в браузере.</p>
+            </div>
+
+            <div class="field-group timing-field">
+              <div class="field-heading"><span class="field-number">03</span><h3>Когда и надолго</h3></div>
+              <div class="select-row">
+                <div class="select-field">
+                  <label for="startSelect">Начало</label>
+                  <select id="startSelect" name="start">
+                    <option value="0">В ближайший час</option>
+                    <option value="1">Через 1 час</option>
+                    <option value="2">Через 2 часа</option>
+                    <option value="3">Через 3 часа</option>
+                    <option value="4">Через 4 часа</option>
+                    <option value="5">Через 5 часов</option>
+                    <option value="6">Через 6 часов</option>
+                  </select>
+                </div>
+                <div class="select-field">
+                  <label for="durationSelect">Продолжительность</label>
+                  <select id="durationSelect" name="duration">
+                    <option value="1">1 час</option>
+                    <option value="2" selected>2 часа</option>
+                    <option value="3">3 часа</option>
+                    <option value="4">4 часа</option>
+                    <option value="5">5 часов</option>
+                    <option value="6">6 часов</option>
+                  </select>
+                </div>
+              </div>
+              <button id="refreshWeather" class="button-primary" type="button"><span aria-hidden="true">↻</span> Обновить прогноз</button>
+            </div>
+          </section>
+
+          <div class="result-stack">
+            <section class="weather-card" aria-labelledby="weatherTitle">
+              <div class="result-heading">
+                <div>
+                  <span id="weatherScope" class="result-kicker">ПРОГНОЗ ПО МАРШРУТУ</span>
+                  <h2 id="weatherTitle">Погода на выход</h2>
+                </div>
+                <span class="weather-symbol" aria-hidden="true">✳</span>
+              </div>
+              <p id="weatherStatus" class="weather-status" role="status" aria-live="polite">Загружаем прогноз для Караульной горы…</p>
+              <div id="weatherPanel" hidden>
+                <div class="weather-main">
+                  <div><strong id="weatherTemp" class="weather-temp">—</strong><p id="weatherDescription" class="weather-description">—</p></div>
+                  <div class="weather-range"><span>На время выхода</span><strong id="weatherRange">—</strong></div>
+                </div>
+                <div class="weather-metrics">
+                  <div><span>Ощущается</span><strong id="weatherFeels">—</strong></div>
+                  <div><span>Ветер</span><strong id="weatherWind">—</strong></div>
+                  <div><span>Порывы</span><strong id="weatherGust">—</strong></div>
+                  <div><span>Осадки</span><strong id="weatherRain">—</strong></div>
+                </div>
+                <div class="hourly-heading">По часам</div>
+                <div id="weatherHourly" class="weather-hourly" aria-label="Прогноз по часам"></div>
+                <p class="weather-updated">Обновлено: <time id="weatherUpdated">—</time></p>
+              </div>
+            </section>
+
+            <section class="recommendation-card" aria-labelledby="recommendationTitle">
+              <div class="result-heading recommendation-heading">
+                <div><span class="result-kicker">ТВОЙ КОМПЛЕКТ</span><h2 id="recommendationTitle">Что надеть</h2></div>
+                <span class="recommendation-symbol" aria-hidden="true">↗</span>
+              </div>
+              <p id="recommendationStatus" class="recommendation-status" role="status" aria-live="polite">Добавьте вещи в гардероб — и здесь появится персональный совет.</p>
+              <div id="recommendationPanel" hidden>
+                <p id="summaryText" class="summary-text"></p>
+                <div class="recommendation-lists">
+                  <section class="recommendation-group"><h3><span aria-hidden="true">↗</span> Надеть</h3><ul id="wearList" class="recommendation-list"></ul></section>
+                  <section class="recommendation-group"><h3><span aria-hidden="true">▣</span> В рюкзак</h3><ul id="packList" class="recommendation-list"></ul></section>
+                  <section class="recommendation-group full-width"><h3><span aria-hidden="true">✳</span> Учесть по дороге</h3><ul id="adviceList" class="advice-list"></ul></section>
+                  <section class="recommendation-group full-width missing-group"><h3><span aria-hidden="true">＋</span> Чего может не хватить</h3><ul id="missingList" class="advice-list"></ul></section>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="wardrobe-section" id="wardrobe" aria-labelledby="wardrobeTitle">
+        <div class="shell">
+          <div class="section-heading wardrobe-heading">
+            <div><div class="section-kicker">02 / СОБИРАЕМ ГАРДЕРОБ</div><h2 id="wardrobeTitle">Твои вещи <span id="wardrobeCount" class="count-badge">0</span></h2></div>
+            <p>Добавь то, что реально носишь. Совет станет полезнее с каждым предметом.</p>
+          </div>
+
+          <div class="wardrobe-grid">
+            <section class="card wardrobe-list-card" aria-labelledby="itemsTitle">
+              <div class="card-title-row"><h3 id="itemsTitle">В гардеробе</h3><span class="card-title-icon" aria-hidden="true">◈</span></div>
+              <div id="wardrobeList" class="wardrobe-list" aria-live="polite"><p class="empty-note">Пока пусто. Добавь несколько вещей или загрузи примеры.</p></div>
+              <div class="wardrobe-actions">
+                <div class="example-actions"><button id="addExamples" type="button" class="text-button">＋ Загрузить примеры</button><button id="removeExamples" type="button" class="text-button" hidden>Убрать примеры</button></div>
+                <div class="transfer-actions">
+                  <button id="exportWardrobe" type="button" class="text-button">↓ Выгрузить JSON</button>
+                  <button id="importWardrobe" type="button" class="text-button">↑ Загрузить JSON</button>
+                  <input id="importFile" type="file" accept=".json,application/json" hidden aria-label="Выбрать файл гардероба JSON">
+                </div>
+              </div>
+            </section>
+
+            <section class="card wardrobe-form-card" aria-labelledby="addItemTitle">
+              <div class="card-title-row"><h3 id="addItemTitle">Добавить вещь</h3><span class="card-title-icon" aria-hidden="true">＋</span></div>
+              <form id="itemForm">
+                <input id="itemId" name="id" type="hidden">
+                <div class="form-grid">
+                  <div class="form-field full-width"><label for="itemName">Название вещи</label><input id="itemName" name="name" type="text" placeholder="Например, лёгкая ветровка" maxlength="80" required></div>
+                  <div class="form-field"><label for="itemCategory">Категория</label><select id="itemCategory" name="category" required>
+                    <option value="base-top">Базовый верх</option>
+                    <option value="mid-top">Утепляющий слой</option>
+                    <option value="shell">Куртка / защита</option>
+                    <option value="bottom">Низ</option>
+                    <option value="shoes">Обувь</option>
+                    <option value="head">Голова</option>
+                    <option value="hands">Руки</option>
+                    <option value="neck">Шея</option>
+                  </select></div>
+                  <div class="form-field"><label for="itemWarmth">Теплота</label><select id="itemWarmth" name="warmth">
+                    <option value="1">Лёгкая</option>
+                    <option value="2">Средняя</option>
+                    <option value="3">Тёплая</option>
+                  </select></div>
+                  <fieldset class="feature-field full-width"><legend>Свойства</legend><div class="checkbox-row">
+                    <label class="checkbox-label"><input id="itemWindproof" name="windproof" type="checkbox"><span>Защита от ветра</span></label>
+                    <label class="checkbox-label"><input id="itemWaterproof" name="waterproof" type="checkbox"><span>Защита от дождя</span></label>
+                  </div></fieldset>
+                  <fieldset class="feature-field full-width"><legend>Подходит для</legend><div class="checkbox-row">
+                    <label class="checkbox-label"><input id="itemRun" name="run" type="checkbox" checked><span>Бега</span></label>
+                    <label class="checkbox-label"><input id="itemHike" name="hike" type="checkbox" checked><span>Подъёма с рюкзаком</span></label>
+                  </div></fieldset>
+                  <div class="form-field full-width"><label for="itemNotes">Заметка <span class="optional">необязательно</span></label><textarea id="itemNotes" name="notes" rows="2" maxlength="280" placeholder="Например, подходит для холодного ветра"></textarea></div>
+                </div>
+                <div class="form-actions"><button class="button-primary" type="submit">Сохранить вещь <span aria-hidden="true">↗</span></button><button id="cancelEdit" class="text-button" type="button" hidden>Отменить</button></div>
+                <p id="wardrobeMessage" class="wardrobe-message" role="status" aria-live="polite"></p>
+              </form>
+            </section>
+          </div>
+          <p class="privacy-note"><span aria-hidden="true">◌</span> Гардероб хранится только в этом браузере. Чтобы перенести его на другое устройство, выгрузи JSON-файл.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer"><div class="shell footer-inner"><span>на выход<span class="brand-dot">.</span></span><p>Перед выходом сверяйся с текущими условиями на маршруте. Прогноз: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>.</p><a href="#top">Наверх ↑</a></div></footer>
+  </body>
+</html>

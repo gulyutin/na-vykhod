@@ -105,6 +105,16 @@ test('disabling Wind as a first layer respects the wardrobe edit', () => {
   assert.equal(noJumperFirst.wear.find(x => x.category === 'base-top').item.name, 'Термобельё — верх');
 });
 
+test('run at zero to plus two on snowy asphalt wears Wind beneath the membrane', () => {
+  const wardrobe = PERSONAL_WARDROBE.map((entry, index) => ({ ...entry, id: String(index) }));
+  const metrics = { tempMin: 0, tempMax: 2, apparentMin: -2,
+    probabilityMax: 0, precipitationTotal: 0, windMax: 11, gustMax: 25, codes: [2] };
+  const result = recommendOutfit(metrics, wardrobe, 'run', 1, 'snow');
+  assert.equal(result.wear.find(x => x.category === 'base-top').item.name, 'Джемпер half-zip GRI Винд');
+  assert.equal(result.wear.find(x => x.category === 'shell').item.name, 'Куртка мембранная Northland Glodis');
+  assert.equal(result.wear.find(x => x.category === 'shoes').item.name, 'ASICS Gel-Sonoma 8');
+});
+
 test('warm dry run does not add shell or cold-weather accessories', () => {
   const metrics = { tempMin: 22, tempMax: 24, apparentMin: 22, probabilityMax: 5,
     precipitationTotal: 0, windMax: 8, gustMax: 12, codes: [1] };
@@ -266,4 +276,50 @@ test('severe frost on dry pavement warns that no proven winter shoe is available
   const result = recommendOutfit(metrics, wardrobe, 'run', 1, 'dry');
   assert.equal(result.wear.find(x => x.category === 'shoes').item.name, 'ASICS Novablast 5');
   assert.ok(result.missing.some(x => x.includes('Нет подтверждённой тёплой обуви')));
+});
+
+test('minus forty selects available winter pieces but never presents them as a safe complete kit', () => {
+  const wardrobe = PERSONAL_WARDROBE.map((entry, index) => ({ ...entry, id: String(index) }));
+  const metrics = { tempMin: -40, tempMax: -38, apparentMin: -48,
+    probabilityMax: 0, precipitationTotal: 0, windMax: 16, gustMax: 30, codes: [0] };
+  const result = recommendOutfit(metrics, wardrobe, 'run', 1, 'ice');
+  assert.equal(result.wear.find(x => x.category === 'shoes').item.name, 'ASICS GEL-FujiSetsu 3 G-TX');
+  assert.equal(result.wear.find(x => x.category === 'head').item.name, 'Балаклава флисовая');
+  assert.equal(result.wear.find(x => x.category === 'hands').item.name, 'Тёплые варежки GRI (тип Полар)');
+  assert.ok(result.missing.some(x => x.includes('Нет подтверждённого комплекта для экстремального мороза')));
+  assert.match(result.summary, /перенесите/);
+  assert.ok(result.advice.some(x => x.includes('Экстремальный мороз')));
+});
+
+test('minus forty in snowfall still calls out insufficient protection for a climb', () => {
+  const wardrobe = PERSONAL_WARDROBE.map((entry, index) => ({ ...entry, id: String(index) }));
+  const metrics = { tempMin: -40, tempMax: -38, apparentMin: -46,
+    probabilityMax: 85, precipitationTotal: 0.8, windMax: 22, gustMax: 44, codes: [71] };
+  const result = recommendOutfit(metrics, wardrobe, 'hike', 2, 'snow');
+  assert.ok(result.flags.snow);
+  assert.ok(result.missing.some(x => x.includes('Нет подтверждённого комплекта для экстремального мороза')));
+  assert.match(result.summary, /перенесите/);
+});
+
+test('plus forty run uses shorts and a sun cap without suggesting any jacket', () => {
+  const wardrobe = PERSONAL_WARDROBE.map((entry, index) => ({ ...entry, id: String(index) }));
+  const metrics = { tempMin: 40, tempMax: 41, apparentMin: 40,
+    probabilityMax: 0, precipitationTotal: 0, windMax: 9, gustMax: 15, codes: [0] };
+  const result = recommendOutfit(metrics, wardrobe, 'run', 1, 'dry');
+  assert.equal(result.wear.find(x => x.category === 'bottom').item.name, 'Шорты Athlex');
+  assert.equal(result.wear.find(x => x.category === 'head').item.name, 'Бейсболка ASICS');
+  assert.ok(!result.wear.some(x => x.category === 'shell' || x.category === 'mid-top'));
+  assert.ok(result.missing.some(x => x.includes('Лёгкий верх')));
+  assert.match(result.summary, /перенесите/);
+});
+
+test('plus forty rain and wind never suggest a dense shell or spare fleece', () => {
+  const wardrobe = PERSONAL_WARDROBE.map((entry, index) => ({ ...entry, id: String(index) }));
+  const metrics = { tempMin: 40, tempMax: 40, apparentMin: 40,
+    probabilityMax: 100, precipitationTotal: 8, windMax: 35, gustMax: 65, codes: [95] };
+  const result = recommendOutfit(metrics, wardrobe, 'hike', 3, 'trail');
+  assert.ok(!result.wear.some(x => x.category === 'shell'));
+  assert.ok(!result.carry.some(x => x.category === 'mid-top'));
+  assert.ok(result.advice.some(x => x.includes('Экстремальная жара')));
+  assert.ok(result.advice.some(x => x.includes('плотная мембрана')));
 });

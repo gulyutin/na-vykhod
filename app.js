@@ -1,5 +1,6 @@
 import { CATEGORIES, includeCurrentConditions, recommendOutfit, summarizeForecast, weatherLabel } from './logic.mjs?v=6';
 import { PERSONAL_WARDROBE } from './wardrobe-defaults.mjs?v=6';
+import { selectHeroScene, weatherIconName } from './hero-scenes.mjs?v=7';
 
 const ROUTE_PLACE = Object.freeze({
   name: 'Караульная гора · часовня',
@@ -236,32 +237,33 @@ function formatNumber(n, digits = 0) {
 function temp(n) {
   return `${n > 0 ? '+' : ''}${formatNumber(Math.round(n))}°`;
 }
-function weatherIconName(code) {
-  if (code === 0) return 'sun';
-  if (code <= 2) return 'partly';
-  if (code === 3) return 'cloud';
-  if (code === 45 || code === 48) return 'fog';
-  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return 'rain';
-  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'snow';
-  if (code >= 95) return 'storm';
-  return 'cloud';
-}
-function renderHeroWeather(codes) {
-  const conditions = codes.map(weatherIconName);
-  const scene = conditions.includes('snow') ? 'snow'
-    : conditions.some(condition => condition === 'rain' || condition === 'storm') ? 'rain'
-      : conditions.some(condition => condition === 'cloud' || condition === 'fog') ? 'cloud' : 'clear';
+let heroImageRequest = 0;
+function renderHeroWeather(metrics) {
+  const { weather, thermal, asset, fallback, outlookCode } = selectHeroScene(metrics);
   const hero = document.querySelector('.hero-art');
   if (hero) {
-    hero.dataset.weather = scene;
-    hero.style.setProperty('--hero-scene', `url("assets/hero-${scene}.webp?v=5")`);
+    hero.dataset.weather = weather;
+    hero.dataset.thermal = thermal;
   }
-  return codes.find(code => {
-    const condition = weatherIconName(code);
-    return scene === 'snow' ? condition === 'snow'
-      : scene === 'rain' ? condition === 'rain' || condition === 'storm'
-        : scene === 'cloud' ? condition === 'cloud' || condition === 'fog' : true;
-  }) ?? codes[0] ?? 3;
+  if (hero && hero.dataset.scene !== asset) {
+    const request = ++heroImageRequest;
+    const fallbackUrl = `assets/${fallback}.webp?v=7`;
+    hero.dataset.scene = asset;
+    hero.style.setProperty('--hero-scene', `url("${fallbackUrl}")`);
+    if (asset !== fallback) {
+      const source = `assets/${asset}.webp?v=7`;
+      const image = new Image();
+      image.onload = () => {
+        if (request === heroImageRequest) hero.style.setProperty('--hero-scene', `url("${source}")`);
+      };
+      image.onerror = () => {
+        // A missing variant must never leave a broken hero background.
+        if (request === heroImageRequest) hero.dataset.scene = fallback;
+      };
+      image.src = source;
+    }
+  }
+  return outlookCode;
 }
 function formatTime(epoch, options = {}) {
   return new Intl.DateTimeFormat('ru-RU', {
@@ -324,6 +326,8 @@ async function fetchWeather() {
   $('weatherPanel').hidden = true;
   $('recommendationPanel').hidden = true;
   $('lookPanel').hidden = true;
+  $('heroOutfit').hidden = true;
+  document.querySelector('.hero-art').dataset.warning = 'false';
   $('lookEmpty').hidden = false;
   $('lookEmpty').textContent = 'Загружаем прогноз для комплекта.';
   $('refreshWeather').disabled = true;
@@ -413,12 +417,13 @@ function renderForecast() {
     setMessage('weatherStatus', error.message, 'error');
     $('weatherPanel').hidden = true;
     $('recommendationPanel').hidden = true;
+    $('heroOutfit').hidden = true;
     return;
   }
   $('weatherPanel').hidden = false;
   const hourly = state.forecast.hourly;
   const atStart = field => leavingNow ? current[field] : hourly[field][state.selectedStart];
-  const outlookCode = renderHeroWeather(metrics.codes);
+  const outlookCode = renderHeroWeather(metrics);
   $('weatherTemp').textContent = temp(atStart('temperature_2m'));
   $('weatherDescription').textContent = weatherLabel(outlookCode);
   $('weatherIconUse').setAttribute('href', `#wx-${weatherIconName(outlookCode)}`);
@@ -430,7 +435,7 @@ function renderForecast() {
   const updated = new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(state.fetchedAt);
   $('weatherUpdated').textContent = state.fromCache ? `сохранён в ${updated}` : updated;
   renderHourly(state.forecast.hourly, metrics.indices);
-  renderRecommendation(metrics, duration);
+  renderRecommendation(metrics, duration, outlookCode);
 }
 
 function renderOutfitList(id, entries) {
@@ -455,7 +460,7 @@ function renderOutfitList(id, entries) {
   }
 }
 
-function renderRecommendation(metrics, duration) {
+function renderRecommendation(metrics, duration, outlookCode) {
   const result = recommendOutfit(metrics, state.wardrobe, state.activity, duration, state.surface);
   $('recommendationPanel').hidden = false;
   $('summaryText').textContent = result.summary;
@@ -484,7 +489,45 @@ function renderRecommendation(metrics, duration) {
     }
     missingList.parentElement.hidden = false;
   } else missingList.parentElement.hidden = true;
+  renderHeroOutfit(result, metrics, outlookCode);
   renderLook(result, metrics);
+}
+
+function renderHeroOutfit(result, metrics, outlookCode) {
+  const list = $('heroOutfitItems');
+  list.replaceChildren();
+  for (const entry of result.wear) {
+    const item = document.createElement('li');
+    item.className = `hero-outfit-item${entry.item ? '' : ' hero-outfit-item--missing'}`;
+    const media = document.createElement('span');
+    media.className = 'hero-outfit-item__media';
+    const imageName = entry.item && ITEM_IMAGES.get(entry.item.name);
+    if (imageName) {
+      const image = document.createElement('img');
+      image.src = `assets/items/${imageName}?v=7`;
+      image.alt = '';
+      image.loading = 'lazy';
+      image.decoding = 'async';
+      media.append(image);
+    } else media.textContent = entry.item ? 'ВЕЩЬ' : '＋';
+    const name = document.createElement('span');
+    name.className = 'hero-outfit-item__name';
+    name.textContent = entry.item?.name ?? entry.label;
+    item.append(media, name);
+    list.append(item);
+  }
+  const activity = state.activity === 'hike' ? 'ПОДЪЁМ С РЮКЗАКОМ' : 'ПРОБЕЖКА';
+  $('heroOutfitWeather').textContent = `${activity} · ${temp(metrics.tempMin)}…${temp(metrics.tempMax)} · ${weatherLabel(outlookCode)}`;
+  const unsafe = /^Экстремальн/u.test(result.summary);
+  $('heroOutfit').dataset.warning = String(unsafe);
+  document.querySelector('.hero-art').dataset.warning = String(unsafe);
+  $('heroOutfitKicker').textContent = unsafe ? 'ВЫХОД ЛУЧШЕ ОТЛОЖИТЬ' : 'КОМПЛЕКТ НА ВЫХОД';
+  const missingCount = result.wear.filter(entry => !entry.item).length;
+  $('heroOutfitNote').textContent = unsafe ? result.summary : missingCount
+    ? `Не хватает вещей: ${missingCount}. Подробности ниже.`
+    : result.missing.length ? 'Есть уточнения по комплекту — проверь их ниже.'
+      : 'По выбранному прогнозу и твоему гардеробу.';
+  $('heroOutfit').hidden = false;
 }
 
 function addLookItems(listId, entries, emptyText) {

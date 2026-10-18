@@ -104,6 +104,9 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours, surf
   const wind = metrics.windMax >= 25 || metrics.gustMax >= 40;
   const feelsCold = t > 1 && t <= 12 && metrics.apparentMin <= 2 &&
     metrics.apparentMin <= t - 5;
+  const extremeCold = t <= -30 || metrics.apparentMin <= -35;
+  const extremeHeat = metrics.tempMax >= 35;
+  const hotRain = wet && t >= (hike ? 25 : 22);
   const snow = snowyCode || (wet && t <= 1 && !rainyCode);
   const wear = [];
   const carry = [];
@@ -160,7 +163,9 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours, surf
     return unsuitableSurface || unsuitableWarmth || unsuitableCap ? null : item;
   }
 
-  const shellNeeded = wet || wind || feelsCold || t <= (hike ? 3 : 1);
+  // A dense shell can trap heat during a hot outing, even in rain or wind.
+  const shellNeeded = (wet && !hotRain) || (wind && t < (hike ? 22 : 20)) ||
+    feelsCold || t <= (hike ? 3 : 1);
   // Near zero, a shell supplies the outer warmth; start with the lightest
   // garment the owner permits directly against the skin.
   const lightFirstLayer = shellNeeded && t >= -3 && t <= 3;
@@ -198,7 +203,7 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours, surf
   const wornJumper = wear.find(entry => entry.item?.category === 'mid-top')?.item;
   const warmerThanWorn = wornJumper ? { minWarmth: wornJumper.warmth + 1 } : {};
 
-  if (hike && !wearMid && (t <= 15 || durationHours >= 2)) {
+  if (hike && !wearMid && (t <= 15 || (durationHours >= 2 && t < 25))) {
     add(carry, 'mid-top', 'Сухой утепляющий слой на остановку и спуск',
       t <= 3 ? 3 : 2, warmerThanWorn);
   }
@@ -224,14 +229,26 @@ export function recommendOutfit(metrics, wardrobe, activity, durationHours, surf
   if (surface === 'trail' && wet) advice.push('На мокром грунте и ступенях проверяйте сцепление подошвы.');
   if (t <= -15 && wear.find(entry => entry.category === 'shoes')?.item?.warmth < 2)
     advice.push('Выбранная обувь не отмечена как зимняя: проверьте теплоту носков и стоп во время выхода.');
-  if (t >= 27) advice.push('Выберите более прохладное время, возьмите воду и сократите нагрузку при перегреве.');
+  if (metrics.tempMax >= 27) advice.push('Выберите более прохладное время, возьмите воду и сократите нагрузку при перегреве.');
   if (t <= -15 || metrics.apparentMin <= -20) advice.push('Сильный холод: закройте открытые участки кожи и оцените, стоит ли выходить.');
+  if (extremeCold) {
+    missing.push('Нет подтверждённого комплекта для экстремального мороза: нужна проверенная тёплая обувь и защита всех открытых участков кожи');
+    advice.unshift('Экстремальный мороз: перенесите пробежку или подъём; перечисленные вещи не подтверждены для таких условий.');
+  }
+  if (extremeHeat)
+    advice.unshift('Экстремальная жара: перенесите бег или подъём на более прохладное время; одежда не устраняет риск перегрева.');
+  if (hotRain)
+    advice.push('В тёплый дождь плотная мембрана может перегреть: выбирайте лёгкую защиту и следите за грозой.');
   if (metrics.gustMax >= 60 || metrics.precipitationTotal >= 5) advice.push('Сильный ветер или осадки: проверьте условия перед выходом и возможность развернуться.');
   if (wardrobe.length === 0) advice.unshift('Добавьте свои вещи в гардероб, чтобы получить комплект по названиям.');
 
   const extraLayerPacked = carry.some(entry => entry.category === 'mid-top' && entry.item);
   let summary;
-  if (hike && t <= 3)
+  if (extremeCold)
+    summary = 'Экстремальный мороз: ваш комплект не подтверждён для выхода; перенесите пробежку или подъём.';
+  else if (extremeHeat)
+    summary = 'Экстремальная жара: перенесите пробежку или подъём на более прохладное время.';
+  else if (hike && t <= 3)
     summary = extraLayerPacked
       ? 'Для подъёма: тёплая база в движении и дополнительный слой в рюкзаке.'
       : 'Для подъёма: тёплые слои в движении; на остановку нужен дополнительный сухой слой.';
